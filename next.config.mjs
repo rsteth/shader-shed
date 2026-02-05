@@ -1,14 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    turbo: {
-      rules: {
-        '*.glsl': ['raw-loader'],
-        '*.vs': ['raw-loader'],
-        '*.fs': ['raw-loader'],
-        '*.vert': ['raw-loader'],
-        '*.frag': ['raw-loader'],
-      },
+  turbopack: {
+    rules: {
+      '*.glsl': ['raw-loader'],
+      '*.vs': ['raw-loader'],
+      '*.fs': ['raw-loader'],
+      '*.vert': ['raw-loader'],
+      '*.frag': ['raw-loader'],
     },
   },
   webpack: (config) => {
