@@ -2,11 +2,26 @@
 const nextConfig = {
   turbopack: {
     rules: {
-      '*.glsl': ['raw-loader'],
-      '*.vs': ['raw-loader'],
-      '*.fs': ['raw-loader'],
-      '*.vert': ['raw-loader'],
-      '*.frag': ['raw-loader'],
+      '*.glsl': {
+        loaders: ['raw-loader'],
+        as: '*.js',
+      },
+      '*.vs': {
+        loaders: ['raw-loader'],
+        as: '*.js',
+      },
+      '*.fs': {
+        loaders: ['raw-loader'],
+        as: '*.js',
+      },
+      '*.vert': {
+        loaders: ['raw-loader'],
+        as: '*.js',
+      },
+      '*.frag': {
+        loaders: ['raw-loader'],
+        as: '*.js',
+      },
     },
   },
   webpack: (config) => {
