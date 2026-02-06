@@ -1,3 +1,4 @@
+#version 300 es
 precision highp float;
 
 #define PI 3.14159265359
@@ -29,7 +30,6 @@ float noise (in vec2 st) {
 float fbm (in vec2 st) {
     float value = 0.0;
     float amplitude = .5;
-    float frequency = 0.;
     // Loop of octaves
     for (int i = 0; i < 5; i++) {
         value += amplitude * noise(st);

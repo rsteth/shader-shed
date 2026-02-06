@@ -1,6 +1,8 @@
-precision highp float;
+// No #version here because common.glsl prepends it
+// precision highp float; // Also in common.glsl
 
-varying vec2 vUv;
+in vec2 vUv;
+out vec4 fragColor;
 
 uniform sampler2D uPrevState; // The previous frame
 uniform float uTime;
@@ -8,17 +10,12 @@ uniform vec2 uResolution;
 uniform vec2 uMouse;
 uniform float uDt;
 
-// Include common functions
-// In a real bundler setup, you'd use #include, but for raw-loader we manually concatenate 
-// or rely on the pipeline to prepend common code. 
-// For this scaffold, I will assume the pipeline prepends 'common.glsl'.
-
 void main() {
     vec2 st = vUv;
     vec2 pixel = 1.0 / uResolution;
 
     // Read previous state
-    vec4 old = texture2D(uPrevState, st);
+    vec4 old = texture(uPrevState, st);
 
     // Simple diffusion / decay
     float decay = 0.99;
@@ -34,10 +31,10 @@ void main() {
     ) * 2.0 - 1.0;
 
     vec2 offset = flow * pixel * 2.0;
-    vec4 displaced = texture2D(uPrevState, st - offset);
+    vec4 displaced = texture(uPrevState, st - offset);
 
     vec3 color = displaced.rgb * decay;
     color += vec3(ripple);
 
-    gl_FragColor = vec4(color, 1.0);
+    fragColor = vec4(color, 1.0);
 }

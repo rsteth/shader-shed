@@ -30,12 +30,12 @@ export class MultipassSystem {
 
     // Initial FBO setup (will be resized immediately)
     this.fbo1 = this.regl.framebuffer({
-        color: this.regl.texture({ width: 1, height: 1, min: 'linear', mag: 'linear', type: 'float' }),
+        color: this.regl.texture({ width: 1, height: 1, min: 'linear', mag: 'linear', type: 'uint8' }),
         depth: false,
         stencil: false
     });
     this.fbo2 = this.regl.framebuffer({
-        color: this.regl.texture({ width: 1, height: 1, min: 'linear', mag: 'linear', type: 'float' }),
+        color: this.regl.texture({ width: 1, height: 1, min: 'linear', mag: 'linear', type: 'uint8' }),
         depth: false,
         stencil: false
     });

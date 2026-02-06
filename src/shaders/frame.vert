@@ -1,6 +1,8 @@
+#version 300 es
 precision highp float;
-attribute vec2 position;
-varying vec2 vUv;
+
+in vec2 position;
+out vec2 vUv;
 
 void main() {
   vUv = 0.5 * (position + 1.0);

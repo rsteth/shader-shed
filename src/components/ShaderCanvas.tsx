@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import regl from 'regl';
 import { UniformManager } from '@/lib/regl/uniforms';
 import { MultipassSystem } from '@/lib/regl/pipeline';
+import { requiredExtensions, optionalExtensions } from '@/lib/regl/context';
 
 interface ShaderCanvasProps {
   mode?: 'background' | 'overlay' | 'contained';
@@ -47,11 +48,12 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
         return;
     }
 
-    // Extensions required for float textures (standard in WebGL2 usually, but good to be safe)
-    // OES_texture_float_linear is needed for linear filtering on float textures
+    // WebGL2 has float/half-float textures built-in
+    // EXT_color_buffer_float is required for rendering to float textures
     const _regl = regl({
       gl,
-      extensions: ['OES_texture_float_linear', 'EXT_color_buffer_float']
+      extensions: requiredExtensions,
+      optionalExtensions: optionalExtensions,
     });
 
     // 2. Initialize System
