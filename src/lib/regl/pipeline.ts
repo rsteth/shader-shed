@@ -1,5 +1,6 @@
 import regl from 'regl';
 import { UniformManager } from './uniforms';
+import { createRenderTarget, type Caps, type RenderTarget } from './render-target';
 
 // Importing raw shader strings (enabled by next.config.mjs)
 import commonShader from '@/shaders/common.glsl';
@@ -12,33 +13,40 @@ type ReglInstance = regl.Regl;
 export class MultipassSystem {
   regl: ReglInstance;
   uniforms: UniformManager;
-  
-  // Buffers for ping-pong
-  fbo1: regl.Framebuffer2D;
-  fbo2: regl.Framebuffer2D;
-  
+  caps: Caps;
+
+  // Buffers for ping-pong (using render-target ladder)
+  rt1: RenderTarget;
+  rt2: RenderTarget;
+
   // Commands
   cmdSim: regl.DrawCommand;
   cmdFinal: regl.DrawCommand;
-  
+
   // Internal state
   tickCount: number = 0;
 
-  constructor(reglInstance: ReglInstance, uniforms: UniformManager) {
+  constructor(reglInstance: ReglInstance, uniforms: UniformManager, caps: Caps) {
     this.regl = reglInstance;
     this.uniforms = uniforms;
+    this.caps = caps;
 
-    // Initial FBO setup (will be resized immediately)
-    this.fbo1 = this.regl.framebuffer({
-        color: this.regl.texture({ width: 1, height: 1, min: 'linear', mag: 'linear', type: 'uint8' }),
-        depth: false,
-        stencil: false
+    // Initial FBO setup using render-target ladder (will be resized immediately)
+    // Request linear filtering for smoother sampling
+    this.rt1 = createRenderTarget(reglInstance, caps, {
+      width: 1,
+      height: 1,
+      linear: true,
     });
-    this.fbo2 = this.regl.framebuffer({
-        color: this.regl.texture({ width: 1, height: 1, min: 'linear', mag: 'linear', type: 'uint8' }),
-        depth: false,
-        stencil: false
+    this.rt2 = createRenderTarget(reglInstance, caps, {
+      width: 1,
+      height: 1,
+      linear: true,
     });
+
+    // Log what render target type we got
+    console.log(`[pipeline] Using RT type: ${this.rt1.type}, filter: ${this.rt1.filter}` +
+      (this.rt1.fallbackFrom ? ` (fallback from: ${this.rt1.fallbackFrom.join(', ')})` : ''));
 
     // Prepend common code to fragment shaders
     const simSource = commonShader + '\n' + simFrag;
@@ -80,35 +88,34 @@ export class MultipassSystem {
   }
 
   resize(width: number, height: number) {
-    this.fbo1.resize(width, height);
-    this.fbo2.resize(width, height);
+    this.rt1.resize(width, height);
+    this.rt2.resize(width, height);
     this.uniforms.resize(width, height);
   }
 
   render() {
     this.tickCount++;
-    
+
     // Ping-pong logic
-    const input = this.tickCount % 2 === 0 ? this.fbo1 : this.fbo2;
-    const output = this.tickCount % 2 === 0 ? this.fbo2 : this.fbo1;
+    const input = this.tickCount % 2 === 0 ? this.rt1 : this.rt2;
+    const output = this.tickCount % 2 === 0 ? this.rt2 : this.rt1;
 
     // 1. Simulation Pass
     // We render into 'output', reading from 'input'
     this.cmdSim({
-      inputTexture: input,
-      outputFbo: output
+      inputTexture: input.colorTex,
+      outputFbo: output.fbo
     });
 
     // 2. Final Composite Pass to Screen
     // We read from 'output' (the result of sim) and render to default framebuffer (null)
     this.cmdFinal({
-      inputTexture: output
+      inputTexture: output.colorTex
     });
   }
 
   dispose() {
-    this.fbo1.destroy();
-    this.fbo2.destroy();
-    // Commands usually don't need explicit destroy in regl, but resources do
+    this.rt1.destroy();
+    this.rt2.destroy();
   }
 }

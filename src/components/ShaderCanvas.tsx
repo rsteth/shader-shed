@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import regl from 'regl';
 import { UniformManager } from '@/lib/regl/uniforms';
 import { MultipassSystem } from '@/lib/regl/pipeline';
-import { requiredExtensions, optionalExtensions } from '@/lib/regl/context';
+import { createReglWithCaps, printCapsReport, type Caps } from '@/lib/regl/render-target';
 
 interface ShaderCanvasProps {
   mode?: 'background' | 'overlay' | 'contained';
@@ -24,9 +23,10 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
   
   // Refs to hold system instances to survive re-renders without recreation
   const systemRef = useRef<{
-    regl: regl.Regl;
+    regl: ReturnType<typeof createReglWithCaps>['regl'];
     uniforms: UniformManager;
     pipeline: MultipassSystem;
+    caps: Caps;
     rafId: number;
     observer: ResizeObserver;
   } | null>(null);
@@ -34,31 +34,25 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
 
-    // 1. Initialize Regl
-    const gl = canvasRef.current.getContext('webgl2', {
+    // 1. Initialize Regl with capability detection
+    const { regl: _regl, caps } = createReglWithCaps({
+      canvas: canvasRef.current,
+      preferWebGL2: true,
+      attributes: {
         alpha: true,
         antialias: false,
         stencil: false,
         depth: false,
-        preserveDrawingBuffer: false
+        preserveDrawingBuffer: false,
+      },
     });
 
-    if (!gl) {
-        console.error("WebGL2 not supported");
-        return;
-    }
+    // Print capabilities for debugging
+    printCapsReport(caps);
 
-    // WebGL2 has float/half-float textures built-in
-    // EXT_color_buffer_float is required for rendering to float textures
-    const _regl = regl({
-      gl,
-      extensions: requiredExtensions,
-      optionalExtensions: optionalExtensions,
-    });
-
-    // 2. Initialize System
+    // 2. Initialize System with capabilities
     const uniforms = new UniformManager();
-    const pipeline = new MultipassSystem(_regl, uniforms);
+    const pipeline = new MultipassSystem(_regl, uniforms, caps);
 
     // 3. Event Listeners
     const handleMouseMove = (e: MouseEvent) => {
@@ -132,6 +126,7 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
         regl: _regl,
         uniforms,
         pipeline,
+        caps,
         rafId,
         observer
     };
