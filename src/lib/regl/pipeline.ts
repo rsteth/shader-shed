@@ -2,11 +2,12 @@ import regl from 'regl';
 import { UniformManager } from './uniforms';
 import { createRenderTarget, type Caps, type RenderTarget } from './render-target';
 
-// Importing raw shader strings (enabled by next.config.mjs)
+// Importing common shader utilities
 import commonShader from '@/shaders/common.glsl';
 import frameVert from '@/shaders/frame.vert';
-import simFrag from '@/shaders/sim.frag';
-import finalFrag from '@/shaders/final.frag';
+
+// Default sketches for backwards compatibility
+import { getSketch, defaultSketchId, type Sketch } from '@/shaders/sketches';
 
 type ReglInstance = regl.Regl;
 
@@ -23,13 +24,22 @@ export class MultipassSystem {
   cmdSim: regl.DrawCommand;
   cmdFinal: regl.DrawCommand;
 
+  // Current sketch
+  currentSketchId: string;
+
   // Internal state
   tickCount: number = 0;
 
-  constructor(reglInstance: ReglInstance, uniforms: UniformManager, caps: Caps) {
+  constructor(
+    reglInstance: ReglInstance,
+    uniforms: UniformManager,
+    caps: Caps,
+    initialSketchId: string = defaultSketchId
+  ) {
     this.regl = reglInstance;
     this.uniforms = uniforms;
     this.caps = caps;
+    this.currentSketchId = initialSketchId;
 
     // Initial FBO setup using render-target ladder (will be resized immediately)
     // Request linear filtering for smoother sampling
@@ -48,12 +58,19 @@ export class MultipassSystem {
     console.log(`[pipeline] Using RT type: ${this.rt1.type}, filter: ${this.rt1.filter}` +
       (this.rt1.fallbackFrom ? ` (fallback from: ${this.rt1.fallbackFrom.join(', ')})` : ''));
 
-    // Prepend common code to fragment shaders
-    const simSource = commonShader + '\n' + simFrag;
-    const finalSource = commonShader + '\n' + finalFrag;
+    // Compile initial commands
+    const sketch = getSketch(initialSketchId);
+    this.cmdSim = this.createSimCommand(sketch);
+    this.cmdFinal = this.createFinalCommand(sketch);
+  }
 
-    // Compile commands
-    this.cmdSim = this.regl({
+  /**
+   * Create the simulation pass command from sketch shaders
+   */
+  private createSimCommand(sketch: Sketch): regl.DrawCommand {
+    const simSource = commonShader + '\n' + sketch.sim;
+
+    return this.regl({
       frag: simSource,
       vert: frameVert,
       attributes: {
@@ -69,8 +86,15 @@ export class MultipassSystem {
       },
       framebuffer: this.regl.prop<any, any>('outputFbo')
     });
+  }
 
-    this.cmdFinal = this.regl({
+  /**
+   * Create the final composite pass command from sketch shaders
+   */
+  private createFinalCommand(sketch: Sketch): regl.DrawCommand {
+    const finalSource = commonShader + '\n' + sketch.final;
+
+    return this.regl({
       frag: finalSource,
       vert: frameVert,
       attributes: {
@@ -84,6 +108,37 @@ export class MultipassSystem {
         uResolution: () => this.uniforms.state.uResolution
       },
       depth: { enable: false }
+    });
+  }
+
+  /**
+   * Switch to a different sketch by ID.
+   * Recompiles shaders and clears the render targets.
+   */
+  setSketch(sketchId: string) {
+    if (sketchId === this.currentSketchId) return;
+
+    const sketch = getSketch(sketchId);
+    console.log(`[pipeline] Switching to sketch: ${sketch.name}`);
+
+    // Recompile commands
+    this.cmdSim = this.createSimCommand(sketch);
+    this.cmdFinal = this.createFinalCommand(sketch);
+    this.currentSketchId = sketchId;
+
+    // Clear render targets to avoid ghosting from previous sketch
+    this.clearTargets();
+  }
+
+  /**
+   * Clear both render targets
+   */
+  clearTargets() {
+    this.regl({ framebuffer: this.rt1.fbo })(() => {
+      this.regl.clear({ color: [0, 0, 0, 0] });
+    });
+    this.regl({ framebuffer: this.rt2.fbo })(() => {
+      this.regl.clear({ color: [0, 0, 0, 0] });
     });
   }
 

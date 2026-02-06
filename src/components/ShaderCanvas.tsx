@@ -1,26 +1,34 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { UniformManager } from '@/lib/regl/uniforms';
 import { MultipassSystem } from '@/lib/regl/pipeline';
 import { createReglWithCaps, printCapsReport, type Caps } from '@/lib/regl/render-target';
+import { defaultSketchId } from '@/shaders/sketches';
 
 interface ShaderCanvasProps {
   mode?: 'background' | 'overlay' | 'contained';
+  sketch?: string;
   onLoaded?: () => void;
   className?: string;
   style?: React.CSSProperties;
 }
 
-const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
+export interface ShaderCanvasHandle {
+  setSketch: (sketchId: string) => void;
+  getCurrentSketch: () => string;
+}
+
+const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
   mode = 'contained',
+  sketch = defaultSketchId,
   onLoaded,
   className = '',
   style = {},
-}) => {
+}, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   // Refs to hold system instances to survive re-renders without recreation
   const systemRef = useRef<{
     regl: ReturnType<typeof createReglWithCaps>['regl'];
@@ -30,6 +38,25 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
     rafId: number;
     observer: ResizeObserver;
   } | null>(null);
+
+  // Expose methods to parent via ref
+  useImperativeHandle(ref, () => ({
+    setSketch: (sketchId: string) => {
+      if (systemRef.current) {
+        systemRef.current.pipeline.setSketch(sketchId);
+      }
+    },
+    getCurrentSketch: () => {
+      return systemRef.current?.pipeline.currentSketchId || defaultSketchId;
+    }
+  }), []);
+
+  // Handle sketch prop changes
+  useEffect(() => {
+    if (systemRef.current && sketch) {
+      systemRef.current.pipeline.setSketch(sketch);
+    }
+  }, [sketch]);
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -50,9 +77,9 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
     // Print capabilities for debugging
     printCapsReport(caps);
 
-    // 2. Initialize System with capabilities
+    // 2. Initialize System with capabilities and initial sketch
     const uniforms = new UniformManager();
-    const pipeline = new MultipassSystem(_regl, uniforms, caps);
+    const pipeline = new MultipassSystem(_regl, uniforms, caps, sketch);
 
     // 3. Event Listeners
     const handleMouseMove = (e: MouseEvent) => {
@@ -65,7 +92,7 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
     if (mode !== 'contained') {
         window.addEventListener('mousemove', handleMouseMove);
     } else {
-        // For contained, we might want relative coordinates, 
+        // For contained, we might want relative coordinates,
         // but for now let's keep it simple or attach to container
         // Attaching to window is often safer for dragging, but let's try container for 'contained'
         containerRef.current.addEventListener('mousemove', (e) => {
@@ -80,7 +107,7 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
     // 4. Resize Handling
     const handleResize = () => {
         if (!containerRef.current || !canvasRef.current) return;
-        
+
         const width = containerRef.current.clientWidth;
         const height = containerRef.current.clientHeight;
         const dpr = window.devicePixelRatio || 1;
@@ -88,7 +115,7 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
         // Update canvas size
         canvasRef.current.width = width * dpr;
         canvasRef.current.height = height * dpr;
-        
+
         // Update styling to match display size
         // canvasRef.current.style.width = `${width}px`;
         // canvasRef.current.style.height = `${height}px`;
@@ -100,7 +127,7 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
 
     const observer = new ResizeObserver(handleResize);
     observer.observe(containerRef.current);
-    
+
     // Initial resize
     handleResize();
 
@@ -112,13 +139,13 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
         lastTime = now;
 
         uniforms.update(dt);
-        
+
         _regl.clear({ color: [0, 0, 0, 0], depth: 1 });
         pipeline.render();
 
         systemRef.current!.rafId = requestAnimationFrame(loop);
     };
-    
+
     const rafId = requestAnimationFrame(loop);
 
     // Store refs
@@ -140,7 +167,7 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
             systemRef.current.observer.disconnect();
             systemRef.current.pipeline.dispose();
             systemRef.current.regl.destroy();
-            
+
             if (mode !== 'contained') {
                 window.removeEventListener('mousemove', handleMouseMove);
             }
@@ -187,12 +214,14 @@ const ShaderCanvas: React.FC<ShaderCanvasProps> = ({
 
   return (
     <div ref={containerRef} style={getContainerStyle()} className={className}>
-      <canvas 
-        ref={canvasRef} 
+      <canvas
+        ref={canvasRef}
         style={{ width: '100%', height: '100%', display: 'block' }}
       />
     </div>
   );
-};
+});
+
+ShaderCanvas.displayName = 'ShaderCanvas';
 
 export default ShaderCanvas;
