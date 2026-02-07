@@ -95,6 +95,19 @@ This repo can publish a static export to GitHub Pages, including branch previews
 
 Branch slugs are lowercased with `/` replaced by `-`.
 
+### Preview URL Metadata
+
+Each deployment writes a `preview-info.json` file into the published site that includes the
+branch name and resolved preview URL. You can fetch it from:
+
+- `https://<org>.github.io/<repo>/preview-info.json` (main)
+- `https://<org>.github.io/<repo>/previews/<branch-slug>/preview-info.json` (branches)
+
+### Repository Visibility
+
+GitHub Pages requires the repository to be **public** on the GitHub Free plan. Private
+repository Pages are available on GitHub Pro/Team/Enterprise plans.
+
 ## React Three Fiber (R3F) Portability
 
 This system is designed to be easily ported to R3F.

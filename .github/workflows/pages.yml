@@ -31,18 +31,30 @@ jobs:
         run: |
           BRANCH="${GITHUB_REF_NAME}"
           SLUG="$(echo "${BRANCH}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')"
+          BASE_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
           if [ "${BRANCH}" = "main" ]; then
             echo "base_path=" >> "$GITHUB_OUTPUT"
             echo "destination_dir=" >> "$GITHUB_OUTPUT"
+            echo "preview_url=${BASE_URL}/" >> "$GITHUB_OUTPUT"
           else
             echo "base_path=/previews/${SLUG}" >> "$GITHUB_OUTPUT"
             echo "destination_dir=previews/${SLUG}" >> "$GITHUB_OUTPUT"
+            echo "preview_url=${BASE_URL}/previews/${SLUG}/" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build (static export)
         env:
           BASE_PATH: ${{ steps.vars.outputs.base_path }}
         run: npm run build
+
+      - name: Write preview info file
+        run: |
+          cat <<'EOF' > out/preview-info.json
+          {
+            "branch": "${GITHUB_REF_NAME}",
+            "previewUrl": "${{ steps.vars.outputs.preview_url }}"
+          }
+          EOF
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
