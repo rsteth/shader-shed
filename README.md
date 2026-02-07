@@ -76,6 +76,25 @@ Edit `src/lib/regl/pipeline.ts`. This file orchestrates the render passes.
    }
    ```
 
+## GitHub Pages Branch Previews
+
+This repo can publish a static export to GitHub Pages, including branch previews.
+
+### Setup
+
+1. Enable GitHub Pages for the repository:
+   - Source: **Deploy from a branch**
+   - Branch: `gh-pages` / `/ (root)`
+2. Ensure the default branch is `main`.
+3. Push any branch to trigger a deploy.
+
+### Preview URLs
+
+- `main` deploys to the root: `https://<org>.github.io/<repo>/`
+- Other branches deploy to: `https://<org>.github.io/<repo>/previews/<branch-slug>/`
+
+Branch slugs are lowercased with `/` replaced by `-`.
+
 ## React Three Fiber (R3F) Portability
 
 This system is designed to be easily ported to R3F.
