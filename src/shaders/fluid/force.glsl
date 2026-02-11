@@ -5,8 +5,6 @@ uniform sampler2D uVelocity;
 uniform float uDt;
 uniform float uForce;
 uniform float uDamp;
-uniform vec2 uSimResolution;
-uniform float uTime;
 
 void main() {
     vec2 vel = texture(uVelocity, vUv).xy;
