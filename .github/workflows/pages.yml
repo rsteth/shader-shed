@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - "**"
+    branches-ignore:
+      - "gh-pages"
 
 permissions:
   contents: write
@@ -31,13 +33,14 @@ jobs:
         run: |
           BRANCH="${GITHUB_REF_NAME}"
           SLUG="$(echo "${BRANCH}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')"
+          REPO_PATH="/${GITHUB_REPOSITORY#*/}"
           BASE_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
           if [ "${BRANCH}" = "main" ]; then
-            echo "base_path=" >> "$GITHUB_OUTPUT"
+            echo "base_path=${REPO_PATH}" >> "$GITHUB_OUTPUT"
             echo "destination_dir=" >> "$GITHUB_OUTPUT"
             echo "preview_url=${BASE_URL}/" >> "$GITHUB_OUTPUT"
           else
-            echo "base_path=/previews/${SLUG}" >> "$GITHUB_OUTPUT"
+            echo "base_path=${REPO_PATH}/previews/${SLUG}" >> "$GITHUB_OUTPUT"
             echo "destination_dir=previews/${SLUG}" >> "$GITHUB_OUTPUT"
             echo "preview_url=${BASE_URL}/previews/${SLUG}/" >> "$GITHUB_OUTPUT"
           fi
@@ -49,7 +52,7 @@ jobs:
 
       - name: Write preview info file
         run: |
-          cat <<'EOF' > out/preview-info.json
+          cat <<EOF > out/preview-info.json
           {
             "branch": "${GITHUB_REF_NAME}",
             "previewUrl": "${{ steps.vars.outputs.preview_url }}"
@@ -63,3 +66,4 @@ jobs:
           publish_dir: ./out
           destination_dir: ${{ steps.vars.outputs.destination_dir }}
           keep_files: true
+          enable_jekyll: false
