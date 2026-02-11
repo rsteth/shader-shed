@@ -8,7 +8,7 @@ export default function Home() {
   const [activeSketch, setActiveSketch] = useState(defaultSketchId);
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-24 text-white">
+    <main className="relative z-0 flex min-h-screen flex-col items-center justify-center p-24 text-white">
 
       {/* Background Layer */}
       <ShaderCanvas mode="background" sketch={activeSketch} />
