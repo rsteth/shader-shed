@@ -23,12 +23,35 @@ import * as ripple from './ripple';
 import * as plasma from './plasma';
 import * as gradient from './gradient';
 import * as voronoi from './voronoi';
+import * as optionsFlow from './options-flow';
 
-export interface Sketch {
+export interface SinglePassSketch {
   name: string;
   description: string;
+  pipeline?: 'single';
   sim: string;    // Simulation fragment shader source
   final: string;  // Final/composite fragment shader source
+}
+
+export interface FluidPasses {
+  force: string;
+  advectVel: string;
+  injectDye: string;
+  advectDye: string;
+  render: string;
+}
+
+export interface FluidSketch {
+  name: string;
+  description: string;
+  pipeline: 'fluid';
+  passes: FluidPasses;
+}
+
+export type Sketch = SinglePassSketch | FluidSketch;
+
+export function isFluidSketch(sketch: Sketch): sketch is FluidSketch {
+  return sketch.pipeline === 'fluid';
 }
 
 /**
@@ -59,6 +82,12 @@ export const sketches: Record<string, Sketch> = {
     description: 'Animated cellular pattern',
     sim: voronoi.sim,
     final: voronoi.final,
+  },
+  optionsFlow: {
+    name: 'Options Flow',
+    description: 'Data-driven flow with SOLID/LINE render modes',
+    pipeline: 'fluid',
+    passes: optionsFlow.passes,
   },
 };
 
