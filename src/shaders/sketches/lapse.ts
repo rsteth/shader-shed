@@ -70,10 +70,7 @@ uniform float uOpacity;
 void main() {
     vec3 color = texture(uTexture, vUv).rgb;
 
-    // Gentle contrast curve and lift.
-    color = pow(color, vec3(0.9));
-    color = color * 1.15;
-
+    // Additive on black: just pass through the tone-mapped sim output.
     fragColor = vec4(color, uOpacity);
 }
 `;
