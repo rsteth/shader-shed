@@ -24,6 +24,7 @@ import * as plasma from './plasma';
 import * as gradient from './gradient';
 import * as voronoi from './voronoi';
 import * as lapse from './lapse';
+import * as firewall from './firewall';
 
 export interface Sketch {
   name: string;
@@ -66,6 +67,12 @@ export const sketches: Record<string, Sketch> = {
     description: 'Iterative volumetric folds translated from a compact one-liner shader',
     sim: lapse.sim,
     final: lapse.final,
+  },
+  firewall: {
+    name: 'Firewall',
+    description: 'Angular flame-like folding field translated from a compact one-liner shader',
+    sim: firewall.sim,
+    final: firewall.final,
   },
 };
 
