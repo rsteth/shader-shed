@@ -38,11 +38,14 @@ A production-ready scaffold for building high-performance, fullscreen, multipass
     context.ts      # Context utilities
     pipeline.ts     # Multipass Render Logic (The "Engine")
     uniforms.ts     # Central State Store
+    pingpong.ts     # Ping-pong helper for multi-pass sims
   /shaders
     common.glsl     # Shared functions (Noise, Math)
     frame.vert      # Fullscreen Quad Vertex Shader
-    sim.frag        # Simulation logic (Fluid/Reaction-Diffusion)
-    final.frag      # Composite/Post-processing
+    fluid/          # Option A fluid sim + render passes
+    sim.frag        # Simulation logic (legacy sketches)
+    final.frag      # Composite/Post-processing (legacy sketches)
+    sketches/       # Sketch registry + swapper
 ```
 
 ## How to Customize
@@ -75,6 +78,34 @@ Edit `src/lib/regl/pipeline.ts`. This file orchestrates the render passes.
      uStrength: () => this.uniforms.state.uStrength
    }
    ```
+
+## Options Flow (Option A) Notes
+
+The **Options Flow** sketch implements the “one simulation, two renderers” pipeline:
+
+**Passes**
+1. **FORCE**: velocity += metric gradient + curl noise, with damping.
+2. **ADVECT_VEL**: semi-Lagrangian velocity advection.
+3. **INJECT_DYE**: injects color/density where metric changes.
+4. **ADVECT_DYE**: advects and fades dye.
+5. **FINAL**: SOLID + LINES renderers with crossfade via `uMode`.
+
+**Uniforms (core)**
+- `uMode` / `uModeTarget`: crossfade between SOLID (0) and LINES (1)
+- `uSnap`: snapshot blend (0 → t0, 0.5 → t1, 1 → t2)
+- `uForce`, `uDamp`, `uInject`, `uFade`: sim controls
+- `uLineDensity`, `uLineSharpness`: line-art controls
+- `uMetricMode`: 0 = dPrice/dStrike, 1 = extrinsic ratio, 2 = |Δmid|
+- `uDebug`: 0 = off, 1 = velocity magnitude, 2 = metric field
+
+**Controls (demo defaults)**
+- `M` → toggle SOLID/LINES
+- `D` → cycle debug views
+- `N` → cycle metric modes
+
+**Options Texture Hookup**
+- The shader expects a 2D texture with 3 stacked snapshots (height × 3).
+- Wire real data by updating `optionsTex` in `src/lib/regl/pipeline.ts` and set `uOptionsTexEnabled = 1.0`.
 
 ## GitHub Pages Branch Previews
 
