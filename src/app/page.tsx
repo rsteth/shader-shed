@@ -8,13 +8,13 @@ export default function Home() {
   const [activeSketch, setActiveSketch] = useState(defaultSketchId);
 
   return (
-    <main className="relative z-0 flex min-h-screen flex-col items-center justify-center p-24 text-white">
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-24 text-white">
 
       {/* Background Layer */}
       <ShaderCanvas mode="background" sketch={activeSketch} />
 
       {/* Content Layer */}
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex flex-col gap-8 pointer-events-none">
+      <div className="relative z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex flex-col gap-8 pointer-events-none">
         <h1 className="text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
           SHADER FORGE
         </h1>
