@@ -23,6 +23,7 @@ import * as ripple from './ripple';
 import * as plasma from './plasma';
 import * as gradient from './gradient';
 import * as voronoi from './voronoi';
+import * as lapse from './lapse';
 
 export interface Sketch {
   name: string;
@@ -59,6 +60,12 @@ export const sketches: Record<string, Sketch> = {
     description: 'Animated cellular pattern',
     sim: voronoi.sim,
     final: voronoi.final,
+  },
+  lapse: {
+    name: 'Lapse',
+    description: 'Iterative volumetric folds translated from a compact one-liner shader',
+    sim: lapse.sim,
+    final: lapse.final,
   },
 };
 
