@@ -50,7 +50,10 @@ void main() {
         acc += vec4(3.0, z, i, 1.0) / d;
     }
 
-    vec4 lapseColor = tanh(acc / 1e4);
+    // The translated one-liner used much smaller numeric ranges than our normalized
+    // fullscreen setup. Dividing by 1e4 collapses everything close to black, so we
+    // use a gentler exposure curve to keep the pattern visible.
+    vec4 lapseColor = tanh(acc * 0.08);
 
     // Small feedback blend to smooth transitions frame-to-frame.
     vec4 prev = texture(uPrevState, uv);
