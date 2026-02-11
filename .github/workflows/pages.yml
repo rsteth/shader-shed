@@ -9,14 +9,13 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: pages-${{ github.event.repository.name }}
-  cancel-in-progress: true
-
 jobs:
   build-and-deploy:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages-${{ github.event.repository.name }}-${{ github.ref_name == 'main' && 'main' || format('preview-{0}', github.ref_name) }}
+      cancel-in-progress: true
     env:
       NODE_VERSION: 20
     steps:
@@ -103,6 +102,9 @@ jobs:
   cleanup-deleted-preview:
     if: github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'main'
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages-${{ github.event.repository.name }}-${{ format('preview-{0}', github.event.ref) }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
