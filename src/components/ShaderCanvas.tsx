@@ -89,18 +89,6 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
       uniforms.setMouse(clientX / innerWidth, clientY / innerHeight);
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'm') {
-        uniforms.toggleMode();
-      }
-      if (e.key.toLowerCase() === 'd') {
-        uniforms.toggleDebug();
-      }
-      if (e.key.toLowerCase() === 'n') {
-        uniforms.cycleMetricMode();
-      }
-    };
-
     if (mode !== 'contained') {
         window.addEventListener('mousemove', handleMouseMove);
     } else {
@@ -115,7 +103,6 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
              );
         });
     }
-    window.addEventListener('keydown', handleKeyDown);
 
     // 4. Resize Handling
     const handleResize = () => {
@@ -184,7 +171,6 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
             if (mode !== 'contained') {
                 window.removeEventListener('mousemove', handleMouseMove);
             }
-            window.removeEventListener('keydown', handleKeyDown);
         }
     };
   }, []);
