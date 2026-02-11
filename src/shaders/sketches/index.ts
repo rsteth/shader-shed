@@ -27,6 +27,8 @@ import * as lapse from './lapse';
 import * as rocaille2 from './rocaille2';
 import * as rocaille from './rocaille';
 import * as event2 from './event2';
+import * as rocailleGlitch from './rocailleGlitch';
+import * as rocaille2Glitch from './rocaille2Glitch';
 
 export interface Sketch {
   name: string;
@@ -82,6 +84,20 @@ export const sketches: Record<string, Sketch> = {
     description: 'Layered trigonometric filigree with spatial phase offsets',
     sim: rocaille.sim,
     final: rocaille.final,
+  },
+
+  rocailleGlitch: {
+    name: 'Rocaille Glitch',
+    description: 'Rocaille filigree remixed with Event 2-style quantized warping and feedback',
+    sim: rocailleGlitch.sim,
+    final: rocailleGlitch.final,
+  },
+
+  rocaille2Glitch: {
+    name: 'Rocaille 2 Glitch',
+    description: 'Rocaille 2 filigree remixed with Event 2-style stepped warping and feedback',
+    sim: rocaille2Glitch.sim,
+    final: rocaille2Glitch.final,
   },
   rocaille2: {
     name: 'Rocaille 2',
