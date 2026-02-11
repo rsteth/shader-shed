@@ -50,10 +50,9 @@ void main() {
         acc += vec4(3.0, z, i, 1.0) / d;
     }
 
-    // The translated one-liner used much smaller numeric ranges than our normalized
-    // fullscreen setup. Dividing by 1e4 collapses everything close to black, so we
-    // use a gentler exposure curve to keep the pattern visible.
-    vec4 lapseColor = tanh(acc * 0.08);
+    // Normalize by iteration count, then apply a soft tone-map so we get
+    // visible structure instead of all-black (too small) or all-white (saturated tanh).
+    vec4 lapseColor = tanh(acc / 50.0 * 1.5);
 
     // Small feedback blend to smooth transitions frame-to-frame.
     vec4 prev = texture(uPrevState, uv);
