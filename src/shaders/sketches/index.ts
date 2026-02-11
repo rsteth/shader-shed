@@ -23,6 +23,10 @@ import * as ripple from './ripple';
 import * as plasma from './plasma';
 import * as gradient from './gradient';
 import * as voronoi from './voronoi';
+import * as lapse from './lapse';
+import * as rocaille2 from './rocaille2';
+import * as rocaille from './rocaille';
+import * as event2 from './event2';
 
 export interface Sketch {
   name: string;
@@ -59,6 +63,31 @@ export const sketches: Record<string, Sketch> = {
     description: 'Animated cellular pattern',
     sim: voronoi.sim,
     final: voronoi.final,
+  },
+  lapse: {
+    name: 'Lapse',
+    description: 'Iterative volumetric folds translated from a compact one-liner shader',
+    sim: lapse.sim,
+    final: lapse.final,
+  },
+
+  event2: {
+    name: 'Event 2',
+    description: 'Dense oscillatory field with warped feedback sampling',
+    sim: event2.sim,
+    final: event2.final,
+  },
+  rocaille: {
+    name: 'Rocaille',
+    description: 'Layered trigonometric filigree with spatial phase offsets',
+    sim: rocaille.sim,
+    final: rocaille.final,
+  },
+  rocaille2: {
+    name: 'Rocaille 2',
+    description: 'Rocaille variant without resolution phase offset in the inner loop',
+    sim: rocaille2.sim,
+    final: rocaille2.final,
   },
 };
 
