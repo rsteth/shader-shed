@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: pages-${{ github.event.repository.name }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
@@ -36,7 +36,9 @@ jobs:
         id: vars
         run: |
           BRANCH="${GITHUB_REF_NAME}"
-          SLUG="$(echo "${BRANCH}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')"
+          SANITIZED_BRANCH="$(echo "${BRANCH}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')"
+          BRANCH_HASH="$(printf '%s' "${BRANCH}" | sha256sum | cut -c1-8)"
+          SLUG="${SANITIZED_BRANCH}-${BRANCH_HASH}"
           REPO_PATH="/${GITHUB_REPOSITORY#*/}"
           BASE_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
 
@@ -113,7 +115,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          SLUG="$(echo "${DELETED_BRANCH}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')"
+          SANITIZED_BRANCH="$(echo "${DELETED_BRANCH}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')"
+          BRANCH_HASH="$(printf '%s' "${DELETED_BRANCH}" | sha256sum | cut -c1-8)"
+          SLUG="${SANITIZED_BRANCH}-${BRANCH_HASH}"
           TARGET_DIR="previews/${SLUG}"
 
           mkdir -p publish
