@@ -89,19 +89,20 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
       uniforms.setMouse(clientX / innerWidth, clientY / innerHeight);
     };
 
+    let containedMouseMoveHandler: ((e: MouseEvent) => void) | null = null;
+
     if (mode !== 'contained') {
         window.addEventListener('mousemove', handleMouseMove);
     } else {
-        // For contained, we might want relative coordinates,
-        // but for now let's keep it simple or attach to container
-        // Attaching to window is often safer for dragging, but let's try container for 'contained'
-        containerRef.current.addEventListener('mousemove', (e) => {
-             const rect = containerRef.current!.getBoundingClientRect();
-             uniforms.setMouse(
-                (e.clientX - rect.left) / rect.width,
-                (e.clientY - rect.top) / rect.height
-             );
-        });
+        containedMouseMoveHandler = (e: MouseEvent) => {
+          const rect = containerRef.current!.getBoundingClientRect();
+          uniforms.setMouse(
+            (e.clientX - rect.left) / rect.width,
+            (e.clientY - rect.top) / rect.height
+          );
+        };
+
+        containerRef.current.addEventListener('mousemove', containedMouseMoveHandler);
     }
 
     // 4. Resize Handling
@@ -170,6 +171,8 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
 
             if (mode !== 'contained') {
                 window.removeEventListener('mousemove', handleMouseMove);
+            } else if (containedMouseMoveHandler) {
+                containerRef.current?.removeEventListener('mousemove', containedMouseMoveHandler);
             }
         }
     };
@@ -186,7 +189,7 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
               left: 0,
               width: '100vw',
               height: '100vh',
-              zIndex: -1,
+              zIndex: 0,
               pointerEvents: 'none'
           };
       }

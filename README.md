@@ -76,6 +76,44 @@ Edit `src/lib/regl/pipeline.ts`. This file orchestrates the render passes.
    }
    ```
 
+## GitHub Pages Branch Previews
+
+This repo can publish a static export to GitHub Pages, including branch previews.
+
+### Setup
+
+1. Enable GitHub Pages for the repository:
+   - Source: **Deploy from a branch**
+   - Branch: `gh-pages` / `/ (root)`
+2. Ensure the default branch is `main`.
+3. Push any branch to trigger a deploy.
+
+### Preview URLs
+
+- **Project Pages repo** (`<repo>` is not `<org>.github.io`):
+  - `main`: `https://<org>.github.io/<repo>/`
+  - branch: `https://<org>.github.io/<repo>/previews/<branch-slug>/`
+- **User/Org Pages repo** (`<repo> == <org>.github.io`):
+  - `main`: `https://<org>.github.io/`
+  - branch: `https://<org>.github.io/previews/<branch-slug>/`
+
+Branch slugs are lowercased with `/` replaced by `-`.
+
+### Preview URL Metadata
+
+Each deployment writes a `preview-info.json` file into the published site that includes the
+branch name and resolved preview URL. You can fetch it from:
+
+- project repo main: `https://<org>.github.io/<repo>/preview-info.json`
+- project repo branch: `https://<org>.github.io/<repo>/previews/<branch-slug>/preview-info.json`
+- user/org repo main: `https://<org>.github.io/preview-info.json`
+- user/org repo branch: `https://<org>.github.io/previews/<branch-slug>/preview-info.json`
+
+### Repository Visibility
+
+GitHub Pages requires the repository to be **public** on the GitHub Free plan. Private
+repository Pages are available on GitHub Pro/Team/Enterprise plans.
+
 ## React Three Fiber (R3F) Portability
 
 This system is designed to be easily ported to R3F.
