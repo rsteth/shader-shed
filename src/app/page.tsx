@@ -14,19 +14,17 @@ export default function Home() {
   const [activeSketch, setActiveSketch] = useState(defaultSketchId);
 
   return (
-    <main className="relative flex min-h-screen items-start justify-center px-6 pt-12 sm:pt-16">
+    <main className="relative min-h-screen">
       <ShaderCanvas mode="background" sketch={activeSketch} />
 
-      <div className="relative z-10 w-full max-w-lg pointer-events-auto">
-        <label htmlFor="sketch-select" className="sr-only">
-          Select sketch
-        </label>
+      <div className="pointer-events-auto absolute left-4 top-4 z-10 w-[min(18rem,calc(100%-2rem))] sm:left-6 sm:top-6">
         <div className={panelClassName}>
           <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset pointer-events-none" />
           <select
             id="sketch-select"
             value={activeSketch}
             onChange={(event) => setActiveSketch(event.target.value)}
+            aria-label="Sketch"
             className={selectClassName}
           >
             {sketchIds.map((id) => (
@@ -35,11 +33,6 @@ export default function Home() {
               </option>
             ))}
           </select>
-          <span className="absolute inset-y-0 right-7 z-20 flex items-center text-zinc-400 pointer-events-none">
-            <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-[18px] w-[18px]">
-              <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
         </div>
       </div>
     </main>
