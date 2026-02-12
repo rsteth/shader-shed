@@ -55,15 +55,15 @@ export default function Home() {
           {showAbout && (
             <section
               id="sketch-about-panel"
-              className="relative z-10 mt-3 max-h-[52vh] overflow-y-auto rounded-xl border border-white/15 bg-zinc-950/90 p-4 text-sm text-zinc-100"
+              className="about-panel relative z-10 mt-3 max-h-[52vh] overflow-y-auto rounded-xl border border-white/20 p-4 text-sm"
             >
-              <h2 className="text-base font-semibold text-white">{sketch?.name ?? activeSketch}</h2>
-              <MathText text={about.intro} className="mt-2 space-y-2 text-zinc-300" />
+              <h2 className="about-blend text-base font-semibold">{sketch?.name ?? activeSketch}</h2>
+              <MathText text={about.intro} className="about-blend mt-2 space-y-2" />
               <div className="mt-3 space-y-3">
                 {about.sections.map((section) => (
-                  <div key={section.heading} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
-                    <h3 className="text-sm font-semibold text-zinc-100">{section.heading}</h3>
-                    <MathText text={section.body} className="mt-1.5 space-y-2 text-zinc-300" />
+                  <div key={section.heading} className="rounded-lg border border-white/15 p-3">
+                    <h3 className="about-blend text-sm font-semibold">{section.heading}</h3>
+                    <MathText text={section.body} className="about-blend mt-1.5 space-y-2" />
                   </div>
                 ))}
               </div>
