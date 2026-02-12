@@ -40,7 +40,12 @@ void main() {
     vec4 feedback = texture(uPrevState, feedbackUv);
 
     vec3 base = tanh(o.rgb * o.rgb * 0.9);
-    vec3 mixed = max(base + feedback.rgb * feedback.rgb * 0.55, 0.0);
+
+    // Keep trails, but avoid positive-only energy accumulation that eventually blows out to white.
+    const float feedbackGain = 0.42;
+    const float decay = 0.97;
+    vec3 mixed = max(base + feedback.rgb * feedbackGain, 0.0) * decay;
+    mixed = 1.0 - exp(-mixed);
 
     fragColor = vec4(mixed, 1.0);
 }
