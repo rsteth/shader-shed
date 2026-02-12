@@ -6,54 +6,35 @@ import { sketches, sketchIds, defaultSketchId } from '@/shaders/sketches';
 
 export default function Home() {
   const [activeSketch, setActiveSketch] = useState(defaultSketchId);
+  const currentSketch = sketches[activeSketch];
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-24 text-white">
-
-      {/* Background Layer */}
+    <main className="relative min-h-screen overflow-hidden text-white">
       <ShaderCanvas mode="background" sketch={activeSketch} />
 
-      {/* Content Layer */}
-      <div className="relative z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex flex-col gap-8 pointer-events-none">
-        <h1 className="text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
-          SHADER FORGE
-        </h1>
-        <p className="text-xl opacity-80 max-w-2xl text-center">
-          Next.js + Regl + WebGL2<br/>
-          Multipass Shader Sketches
-        </p>
+      <div className="pointer-events-none absolute inset-0 z-10 p-4 sm:p-6">
+        <section className="pointer-events-auto w-full max-w-xs rounded-xl border border-zinc-700 bg-black p-4 shadow-2xl font-sans">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-300">Sketch</p>
+          <h1 className="mt-2 text-lg font-semibold text-cyan-100">{currentSketch.name}</h1>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-200">{currentSketch.description}</p>
 
-        {/* Sketch Selector */}
-        <div className="flex flex-wrap gap-3 mt-8 pointer-events-auto justify-center">
-          {sketchIds.map((id) => {
-            const sketch = sketches[id];
-            const isActive = id === activeSketch;
-            return (
-              <button
-                key={id}
-                onClick={() => setActiveSketch(id)}
-                className={`
-                  px-5 py-2.5 rounded-full border transition-all duration-200
-                  backdrop-blur-md text-sm font-medium
-                  ${isActive
-                    ? 'bg-white text-black border-white'
-                    : 'border-white/30 hover:bg-white/10 hover:border-white/50'
-                  }
-                `}
-                title={sketch.description}
-              >
-                {sketch.name}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Current sketch description */}
-        <p className="text-sm opacity-60 mt-4 text-center">
-          {sketches[activeSketch].description}
-        </p>
+          <label htmlFor="sketch-select" className="mt-4 block text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
+            Select sketch
+          </label>
+          <select
+            id="sketch-select"
+            value={activeSketch}
+            onChange={(event) => setActiveSketch(event.target.value as (typeof sketchIds)[number])}
+            className="mt-2 w-full rounded-md border border-zinc-500 bg-zinc-950 px-3 py-2 text-sm text-cyan-50 outline-none transition focus:border-cyan-300"
+          >
+            {sketchIds.map((id) => (
+              <option key={id} value={id}>
+                {sketches[id].name}
+              </option>
+            ))}
+          </select>
+        </section>
       </div>
-
     </main>
   );
 }
