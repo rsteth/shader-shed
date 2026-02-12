@@ -29,6 +29,15 @@ import * as rocaille from './rocaille';
 import * as event2 from './event2';
 import * as rocailleGlitch from './rocailleGlitch';
 import * as rocaille2Glitch from './rocaille2Glitch';
+import * as cathedralMist from './cathedralMist';
+import * as eventideHelix from './eventideHelix';
+import * as emberArray from './emberArray';
+import * as silkSpindle from './silkSpindle';
+import * as hingeBloom from './hingeBloom';
+import * as axialChoir from './axialChoir';
+import * as prismTangle from './prismTangle';
+import * as noctilucentArc from './noctilucentArc';
+import * as furnaceMire from './furnaceMire';
 
 export interface Sketch {
   name: string;
@@ -104,6 +113,60 @@ export const sketches: Record<string, Sketch> = {
     description: 'Rocaille variant without resolution phase offset in the inner loop',
     sim: rocaille2.sim,
     final: rocaille2.final,
+  },
+  cathedralMist: {
+    name: 'Cathedral Mist',
+    description: 'Volumetric cosine folds with refracted inner turbulence',
+    sim: cathedralMist.sim,
+    final: cathedralMist.final,
+  },
+  eventideHelix: {
+    name: 'Eventide Helix',
+    description: 'Stepped oscillatory field with sine-warped feedback trails',
+    sim: eventideHelix.sim,
+    final: eventideHelix.final,
+  },
+  emberArray: {
+    name: 'Ember Array',
+    description: 'Dense orbital fold cloud with chromatic ray accumulation',
+    sim: emberArray.sim,
+    final: emberArray.final,
+  },
+  silkSpindle: {
+    name: 'Silk Spindle',
+    description: 'Cross-product drift lattice disturbed by quantized cosine pulses',
+    sim: silkSpindle.sim,
+    final: silkSpindle.final,
+  },
+  hingeBloom: {
+    name: 'Hinge Bloom',
+    description: 'Expanding march constrained by trigonometric hinge distances',
+    sim: hingeBloom.sim,
+    final: hingeBloom.final,
+  },
+  axialChoir: {
+    name: 'Axial Choir',
+    description: 'Rotated ray bundle with anisotropic depth and harmonic tinting',
+    sim: axialChoir.sim,
+    final: axialChoir.final,
+  },
+  prismTangle: {
+    name: 'Prism Tangle',
+    description: 'Rounded fold filigree with radial prism-like grading',
+    sim: prismTangle.sim,
+    final: prismTangle.final,
+  },
+  noctilucentArc: {
+    name: 'Noctilucent Arc',
+    description: 'Phase-shifted shell growth with sinusoidal volumetric trails',
+    sim: noctilucentArc.sim,
+    final: noctilucentArc.final,
+  },
+  furnaceMire: {
+    name: 'Furnace Mire',
+    description: 'Chaotic folded plasma with rounded-step harmonic diffusion',
+    sim: furnaceMire.sim,
+    final: furnaceMire.final,
   },
 };
 
