@@ -23,11 +23,24 @@ export default function Home() {
         </label>
         <div className={panelClassName}>
           <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 ring-inset pointer-events-none" />
-
+          <select
+            id="sketch-select"
+            value={activeSketch}
+            onChange={(event) => setActiveSketch(event.target.value)}
             className={selectClassName}
+          >
+            {sketchIds.map((id) => (
+              <option key={id} value={id}>
+                {sketches[id]?.name ?? id}
+              </option>
+            ))}
+          </select>
           <span className="absolute inset-y-0 right-7 z-20 flex items-center text-zinc-400 pointer-events-none">
             <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-[18px] w-[18px]">
-        </select>
+              <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        </div>
       </div>
     </main>
   );
