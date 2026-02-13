@@ -65,7 +65,12 @@ export default function SlideshowPage({ asciiMode }: SlideshowPageProps) {
 
   return (
     <main className="relative min-h-screen">
-      <ShaderCanvas mode="background" sketch={availableSketches[activeIndex]} asciiMode={asciiMode} />
+      <ShaderCanvas
+        mode="contained"
+        className="fixed inset-0 h-screen w-screen"
+        sketch={availableSketches[activeIndex]}
+        asciiMode={asciiMode}
+      />
     </main>
   );
 }
