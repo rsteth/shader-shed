@@ -82,20 +82,6 @@ export const sketchAbout: Record<string, SketchAbout> = {
       },
     ],
   },
-  lapse: {
-    intro:
-      'Lapse iterates compact folding transforms to mimic volumetric depth from a small algebraic recipe.',
-    sections: [
-      {
-        heading: 'What is happening',
-        body: 'A folded orbit repeatedly applies nonlinear transforms $$\\mathbf{p}_{n+1}=T(\\mathbf{p}_n,t),$$ then accumulates a glow term from orbit statistics.',
-      },
-      {
-        heading: 'Key variables',
-        body: 'Iteration count $N$ sets detail richness, fold strength sets density, and attenuation terms determine whether the image feels misty or metallic.',
-      },
-    ],
-  },
   event2: {
     intro:
       'Event 2 builds a dense oscillatory field and samples feedback through quantized warps to create stepped motion.',
@@ -219,20 +205,6 @@ export const sketchAbout: Record<string, SketchAbout> = {
       {
         heading: 'Key variables',
         body: 'Pulse quantization, drift rate, and lattice scale govern whether the structure reads as fabric strands or crystalline scaffolding.',
-      },
-    ],
-  },
-  hingeBloom: {
-    intro:
-      'Hinge Bloom expands distance-marched forms whose curvature is constrained by trigonometric hinge distances.',
-    sections: [
-      {
-        heading: 'What is happening',
-        body: 'A signed-distance style marcher updates $$t_{n+1}=t_n + d(\\mathbf{p}(t_n)),$$ where $d$ includes hinge-like angular modulation to create petal openings.',
-      },
-      {
-        heading: 'Key variables',
-        body: 'Step scale, hinge frequency, and bloom gain decide whether forms feel architectural, floral, or explosive.',
       },
     ],
   },
