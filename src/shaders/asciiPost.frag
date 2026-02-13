@@ -5,50 +5,96 @@ uniform sampler2D uTexture;
 uniform vec2 uResolution;
 uniform vec2 uCellSize;
 
-in vec2 vUv;
 out vec4 fragColor;
 
-float rectMask(vec2 uv, vec2 center, vec2 halfSize) {
-  vec2 d = abs(uv - center);
-  return step(d.x, halfSize.x) * step(d.y, halfSize.y);
-}
-
-float hBar(vec2 uv, float y, float halfWidth, float thickness) {
-  return rectMask(uv, vec2(0.5, y), vec2(halfWidth, thickness));
-}
-
-float vBar(vec2 uv, float x, float halfHeight, float thickness) {
-  return rectMask(uv, vec2(x, 0.5), vec2(thickness, halfHeight));
-}
-
-float glyphForIndex(float index, vec2 uv) {
-  float g = 0.0;
-
-  if (index < 0.5) {
-    g = 0.0;
-  } else if (index < 1.5) {
-    g = rectMask(uv, vec2(0.5), vec2(0.06));
-  } else if (index < 2.5) {
-    g = hBar(uv, 0.5, 0.22, 0.045);
-  } else if (index < 3.5) {
-    g = hBar(uv, 0.28, 0.2, 0.04) + hBar(uv, 0.72, 0.2, 0.04);
-  } else if (index < 4.5) {
-    g = hBar(uv, 0.25, 0.23, 0.04) + hBar(uv, 0.5, 0.23, 0.04) + hBar(uv, 0.75, 0.23, 0.04);
-  } else if (index < 5.5) {
-    g = vBar(uv, 0.28, 0.28, 0.04) + vBar(uv, 0.72, 0.28, 0.04) + hBar(uv, 0.5, 0.22, 0.04);
-  } else if (index < 6.5) {
-    g = vBar(uv, 0.28, 0.36, 0.04) + vBar(uv, 0.72, 0.36, 0.04) + hBar(uv, 0.2, 0.22, 0.04) + hBar(uv, 0.5, 0.22, 0.04) + hBar(uv, 0.8, 0.22, 0.04);
-  } else {
-    g = rectMask(uv, vec2(0.5), vec2(0.26, 0.36));
+// 5x7 bitmap glyph library.
+// Chars used (ASCII decimal):
+// [32 ' ', 46 '.', 58 ':', 45 '-', 61 '=', 43 '+', 42 '*', 111 'o', 97 'a', 101 'e', 35 '#', 64 '@']
+// Intentionally avoids block-drawing ranges like 176-223.
+uint glyphRowBits(int glyphIndex, int row) {
+  if (glyphIndex == 0) { // ' '
+    return 0u;
+  }
+  if (glyphIndex == 1) { // '.'
+    return row == 6 ? 4u : 0u;
+  }
+  if (glyphIndex == 2) { // ':'
+    return (row == 2 || row == 5) ? 4u : 0u;
+  }
+  if (glyphIndex == 3) { // '-'
+    return row == 3 ? 14u : 0u;
+  }
+  if (glyphIndex == 4) { // '='
+    return (row == 2 || row == 4) ? 14u : 0u;
+  }
+  if (glyphIndex == 5) { // '+'
+    if (row == 3) return 14u;
+    return (row >= 1 && row <= 5) ? 4u : 0u;
+  }
+  if (glyphIndex == 6) { // '*'
+    if (row == 1 || row == 5) return 17u;
+    if (row == 2 || row == 4) return 10u;
+    if (row == 3) return 4u;
+    return 0u;
+  }
+  if (glyphIndex == 7) { // 'o'
+    if (row == 1 || row == 5) return 14u;
+    return (row >= 2 && row <= 4) ? 17u : 0u;
+  }
+  if (glyphIndex == 8) { // 'a'
+    if (row == 2) return 14u;
+    if (row == 3) return 1u;
+    if (row == 4) return 15u;
+    if (row == 5) return 17u;
+    if (row == 6) return 15u;
+    return 0u;
+  }
+  if (glyphIndex == 9) { // 'e'
+    if (row == 2) return 14u;
+    if (row == 3) return 17u;
+    if (row == 4) return 31u;
+    if (row == 5) return 16u;
+    if (row == 6) return 14u;
+    return 0u;
+  }
+  if (glyphIndex == 10) { // '#'
+    if (row == 1 || row == 5) return 10u;
+    if (row == 2 || row == 4) return 31u;
+    return 10u;
   }
 
-  return clamp(g, 0.0, 1.0);
+  // '@' (glyphIndex == 11)
+  if (row == 1 || row == 5) return 14u;
+  if (row == 2 || row == 4) return 19u;
+  if (row == 3) return 23u;
+  return 0u;
+}
+
+float glyphMask(int glyphIndex, vec2 uv) {
+  vec2 glyphGrid = vec2(5.0, 7.0);
+
+  // Keep a small interior margin so glyphs read clearly in each fixed-size cell.
+  vec2 insetUv = (uv - 0.08) / 0.84;
+  if (insetUv.x < 0.0 || insetUv.x > 1.0 || insetUv.y < 0.0 || insetUv.y > 1.0) {
+    return 0.0;
+  }
+
+  ivec2 p = ivec2(floor(insetUv * glyphGrid));
+  p = clamp(p, ivec2(0), ivec2(4, 6));
+
+  // Row 0 at top.
+  int row = p.y;
+  int bit = 4 - p.x;
+
+  uint bits = glyphRowBits(glyphIndex, row);
+  return float((bits >> uint(bit)) & 1u);
 }
 
 void main() {
   vec2 frag = gl_FragCoord.xy;
   vec2 cell = max(uCellSize, vec2(1.0));
 
+  // Fixed grid sampling => uniform character width/height.
   vec2 cellOrigin = floor(frag / cell) * cell;
   vec2 center = cellOrigin + 0.5 * cell;
   vec2 sampleUv = center / uResolution;
@@ -56,13 +102,15 @@ void main() {
   vec3 color = texture(uTexture, sampleUv).rgb;
   float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
 
-  float idx = floor(clamp(luminance, 0.0, 0.999) * 8.0);
+  // 12 glyphs from light to dense.
+  const float glyphCount = 12.0;
+  int glyphIndex = int(floor(clamp(luminance, 0.0, 0.9999) * glyphCount));
 
   vec2 local = fract(frag / cell);
-  float glyph = glyphForIndex(idx, local);
+  float glyph = glyphMask(glyphIndex, local);
 
   vec3 bg = vec3(0.03, 0.05, 0.04);
-  vec3 fg = mix(vec3(0.75, 1.0, 0.75), vec3(1.0), luminance);
+  vec3 fg = mix(vec3(0.72, 1.0, 0.72), vec3(1.0), luminance);
   vec3 finalColor = mix(bg, fg, glyph);
 
   fragColor = vec4(finalColor, 1.0);
