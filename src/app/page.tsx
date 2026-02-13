@@ -18,12 +18,13 @@ const buttonClassName =
 export default function Home() {
   const [activeSketch, setActiveSketch] = useState(defaultSketchId);
   const [showAbout, setShowAbout] = useState(false);
+  const [asciiMode, setAsciiMode] = useState(false);
   const sketch = sketches[activeSketch];
   const about = getSketchAbout(activeSketch, sketch);
 
   return (
     <main className="relative min-h-screen">
-      <ShaderCanvas mode="background" sketch={activeSketch} />
+      <ShaderCanvas mode="background" sketch={activeSketch} asciiMode={asciiMode} />
 
       <div className="pointer-events-auto absolute left-4 top-4 z-10 w-[min(18rem,calc(100%-2rem))] sm:left-6 sm:top-6">
         <div className={panelClassName}>
@@ -41,6 +42,15 @@ export default function Home() {
               </option>
             ))}
           </select>
+
+          <button
+            type="button"
+            className={buttonClassName}
+            onClick={() => setAsciiMode((enabled) => !enabled)}
+            aria-pressed={asciiMode}
+          >
+            ASCII: {asciiMode ? 'On' : 'Off'}
+          </button>
 
           <button
             type="button"

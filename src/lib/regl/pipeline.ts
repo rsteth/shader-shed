@@ -5,6 +5,7 @@ import { createRenderTarget, type Caps, type RenderTarget } from './render-targe
 // Importing common shader utilities
 import commonShader from '@/shaders/common.glsl';
 import frameVert from '@/shaders/frame.vert';
+import asciiPostFrag from '@/shaders/asciiPost.frag';
 
 // Default sketches for backwards compatibility
 import { getSketch, defaultSketchId, type Sketch } from '@/shaders/sketches';
@@ -19,16 +20,19 @@ export class MultipassSystem {
   // Buffers for ping-pong (using render-target ladder)
   rt1: RenderTarget;
   rt2: RenderTarget;
+  postRt: RenderTarget;
 
   // Commands
   cmdSim: regl.DrawCommand;
   cmdFinal: regl.DrawCommand;
+  cmdAscii: regl.DrawCommand;
 
   // Current sketch
   currentSketchId: string;
 
   // Internal state
   tickCount: number = 0;
+  asciiEnabled: boolean = false;
 
   constructor(
     reglInstance: ReglInstance,
@@ -53,6 +57,11 @@ export class MultipassSystem {
       height: 1,
       linear: true,
     });
+    this.postRt = createRenderTarget(reglInstance, caps, {
+      width: 1,
+      height: 1,
+      linear: false,
+    });
 
     // Log what render target type we got
     console.log(`[pipeline] Using RT type: ${this.rt1.type}, filter: ${this.rt1.filter}` +
@@ -62,6 +71,7 @@ export class MultipassSystem {
     const sketch = getSketch(initialSketchId);
     this.cmdSim = this.createSimCommand(sketch);
     this.cmdFinal = this.createFinalCommand(sketch);
+    this.cmdAscii = this.createAsciiCommand();
   }
 
   /**
@@ -107,7 +117,28 @@ export class MultipassSystem {
         uOpacity: () => this.uniforms.state.uOpacity,
         uResolution: () => this.uniforms.state.uResolution
       },
+      framebuffer: this.regl.prop<any, any>('outputFbo'),
       depth: { enable: false }
+    });
+  }
+
+  /**
+   * Create optional ASCII post-process command.
+   */
+  private createAsciiCommand(): regl.DrawCommand {
+    return this.regl({
+      frag: asciiPostFrag,
+      vert: frameVert,
+      attributes: {
+        position: [[-1, -1], [1, -1], [-1, 1], [-1, 1], [1, -1], [1, 1]]
+      },
+      count: 6,
+      uniforms: {
+        uTexture: this.regl.prop<any, any>('inputTexture'),
+        uResolution: () => this.uniforms.state.uResolution,
+        uCellSize: () => [10, 16],
+      },
+      depth: { enable: false },
     });
   }
 
@@ -130,6 +161,10 @@ export class MultipassSystem {
     this.clearTargets();
   }
 
+  setAsciiEnabled(enabled: boolean) {
+    this.asciiEnabled = enabled;
+  }
+
   /**
    * Clear both render targets
    */
@@ -145,6 +180,7 @@ export class MultipassSystem {
   resize(width: number, height: number) {
     this.rt1.resize(width, height);
     this.rt2.resize(width, height);
+    this.postRt.resize(width, height);
     this.uniforms.resize(width, height);
   }
 
@@ -165,12 +201,20 @@ export class MultipassSystem {
     // 2. Final Composite Pass to Screen
     // We read from 'output' (the result of sim) and render to default framebuffer (null)
     this.cmdFinal({
-      inputTexture: output.colorTex
+      inputTexture: output.colorTex,
+      outputFbo: this.asciiEnabled ? this.postRt.fbo : null,
     });
+
+    if (this.asciiEnabled) {
+      this.cmdAscii({
+        inputTexture: this.postRt.colorTex,
+      });
+    }
   }
 
   dispose() {
     this.rt1.destroy();
     this.rt2.destroy();
+    this.postRt.destroy();
   }
 }
