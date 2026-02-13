@@ -23,7 +23,6 @@ import * as ripple from './ripple';
 import * as plasma from './plasma';
 import * as gradient from './gradient';
 import * as voronoi from './voronoi';
-import * as lapse from './lapse';
 import * as rocaille2 from './rocaille2';
 import * as rocaille from './rocaille';
 import * as event2 from './event2';
@@ -33,7 +32,6 @@ import * as cathedralMist from './cathedralMist';
 import * as eventideHelix from './eventideHelix';
 import * as emberArray from './emberArray';
 import * as silkSpindle from './silkSpindle';
-import * as hingeBloom from './hingeBloom';
 import * as axialChoir from './axialChoir';
 import * as prismTangle from './prismTangle';
 import * as noctilucentArc from './noctilucentArc';
@@ -74,12 +72,6 @@ export const sketches: Record<string, Sketch> = {
     description: 'Animated cellular pattern',
     sim: voronoi.sim,
     final: voronoi.final,
-  },
-  lapse: {
-    name: 'Lapse',
-    description: 'Iterative volumetric folds translated from a compact one-liner shader',
-    sim: lapse.sim,
-    final: lapse.final,
   },
 
   event2: {
@@ -137,12 +129,6 @@ export const sketches: Record<string, Sketch> = {
     description: 'Cross-product drift lattice disturbed by quantized cosine pulses',
     sim: silkSpindle.sim,
     final: silkSpindle.final,
-  },
-  hingeBloom: {
-    name: 'Hinge Bloom',
-    description: 'Expanding march constrained by trigonometric hinge distances',
-    sim: hingeBloom.sim,
-    final: hingeBloom.final,
   },
   axialChoir: {
     name: 'Axial Choir',
