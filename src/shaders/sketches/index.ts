@@ -42,6 +42,7 @@ export interface Sketch {
   description: string;
   sim: string;    // Simulation fragment shader source
   final: string;  // Final/composite fragment shader source
+  includeInSlideshow?: boolean;
 }
 
 /**
@@ -54,24 +55,28 @@ export const sketches: Record<string, Sketch> = {
     description: 'Interactive fluid ripples with curl noise',
     sim: ripple.sim,
     final: ripple.final,
+    includeInSlideshow: false,
   },
   plasma: {
     name: 'Plasma',
     description: 'Classic plasma effect with sine waves',
     sim: plasma.sim,
     final: plasma.final,
+    includeInSlideshow: false,
   },
   gradient: {
     name: 'Gradient Drift',
     description: 'Smooth flowing color gradients',
     sim: gradient.sim,
     final: gradient.final,
+    includeInSlideshow: false,
   },
   voronoi: {
     name: 'Voronoi Cells',
     description: 'Animated cellular pattern',
     sim: voronoi.sim,
     final: voronoi.final,
+    includeInSlideshow: false,
   },
 
   event2: {
@@ -157,6 +162,7 @@ export const sketches: Record<string, Sketch> = {
 };
 
 export const sketchIds = Object.keys(sketches);
+export const slideshowSketchIds = sketchIds.filter((id) => sketches[id].includeInSlideshow !== false);
 export const defaultSketchId = 'ripple';
 
 export function getSketch(id: string): Sketch {
