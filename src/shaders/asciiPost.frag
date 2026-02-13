@@ -37,10 +37,14 @@ void main() {
 
   vec2 localUv = fract(frag / cell);
   float glyphMask = sampleGlyph(localUv, glyphIndex);
-  float safeMask = max(glyphMask, 0.06);
+
+  // Fallback only when atlas sampling effectively fails.
+  // This avoids the global translucent veil caused by always enforcing a minimum mask.
+  float fallbackMask = smoothstep(0.18, 0.95, luminance);
+  float mask = mix(fallbackMask, glyphMask, step(0.001, glyphMask));
 
   vec3 bg = vec3(0.0);
-  vec3 color = mix(bg, sourceColor, safeMask);
+  vec3 color = mix(bg, sourceColor, mask);
 
   fragColor = vec4(color, 1.0);
 }
