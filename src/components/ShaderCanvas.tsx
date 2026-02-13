@@ -9,6 +9,7 @@ import { defaultSketchId } from '@/shaders/sketches';
 interface ShaderCanvasProps {
   mode?: 'background' | 'overlay' | 'contained';
   sketch?: string;
+  asciiMode?: boolean;
   onLoaded?: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -22,6 +23,7 @@ export interface ShaderCanvasHandle {
 const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
   mode = 'contained',
   sketch = defaultSketchId,
+  asciiMode = false,
   onLoaded,
   className = '',
   style = {},
@@ -59,6 +61,12 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
   }, [sketch]);
 
   useEffect(() => {
+    if (systemRef.current) {
+      systemRef.current.pipeline.setAsciiEnabled(asciiMode);
+    }
+  }, [asciiMode]);
+
+  useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
 
     // 1. Initialize Regl with capability detection
@@ -80,6 +88,7 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
     // 2. Initialize System with capabilities and initial sketch
     const uniforms = new UniformManager();
     const pipeline = new MultipassSystem(_regl, uniforms, caps, sketch);
+    pipeline.setAsciiEnabled(asciiMode);
 
     // 3. Event Listeners
     const handleMouseMove = (e: MouseEvent) => {
