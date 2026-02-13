@@ -116,6 +116,7 @@ export class MultipassSystem {
       width: 1,
       height: 1,
       linear: false,
+      forceType: 'uint8',
     });
 
     const glyphAtlas = createAsciiGlyphAtlas(reglInstance);

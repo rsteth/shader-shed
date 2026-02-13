@@ -37,9 +37,10 @@ void main() {
 
   vec2 localUv = fract(frag / cell);
   float glyphMask = sampleGlyph(localUv, glyphIndex);
+  float safeMask = max(glyphMask, 0.06);
 
   vec3 bg = vec3(0.0);
-  vec3 color = mix(bg, sourceColor, glyphMask);
+  vec3 color = mix(bg, sourceColor, safeMask);
 
   fragColor = vec4(color, 1.0);
 }

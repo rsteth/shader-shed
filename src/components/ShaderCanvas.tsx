@@ -13,6 +13,7 @@ interface ShaderCanvasProps {
   onLoaded?: () => void;
   className?: string;
   style?: React.CSSProperties;
+  maxDpr?: number;
 }
 
 export interface ShaderCanvasHandle {
@@ -27,6 +28,7 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
   onLoaded,
   className = '',
   style = {},
+  maxDpr,
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -119,7 +121,8 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
 
         const width = containerRef.current.clientWidth;
         const height = containerRef.current.clientHeight;
-        const dpr = window.devicePixelRatio || 1;
+        const nativeDpr = window.devicePixelRatio || 1;
+        const dpr = maxDpr ? Math.min(nativeDpr, maxDpr) : nativeDpr;
 
         // Update canvas size
         canvasRef.current.width = width * dpr;

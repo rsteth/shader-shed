@@ -70,6 +70,7 @@ export default function SlideshowPage({ asciiMode }: SlideshowPageProps) {
         className="fixed inset-0 h-screen w-screen"
         sketch={availableSketches[activeIndex]}
         asciiMode={asciiMode}
+        maxDpr={asciiMode ? 1 : 2}
       />
     </main>
   );

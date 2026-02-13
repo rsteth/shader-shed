@@ -59,6 +59,7 @@ export interface RenderTargetOptions {
   width: number;
   height: number;
   linear?: boolean;
+  forceType?: RTType;
 }
 
 export interface RenderTarget {
@@ -562,23 +563,30 @@ export function createRenderTarget(
   caps: Caps,
   options: RenderTargetOptions
 ): RenderTarget {
-  const { width, height, linear = false } = options;
+  const { width, height, linear = false, forceType } = options;
   const fallbackFrom: RTType[] = [];
   const gl = reglInstance._gl;
 
   // Build the ladder of types to try based on capabilities
   const typesToTry: RTType[] = [];
 
-  // Add types in priority order (only those that caps says are available)
-  if (caps.isWebGL2) {
-    if (caps.canRTTHalfFloat) typesToTry.push('half float');
-    if (caps.canRTTFloat) typesToTry.push('float');
+  if (forceType) {
+    typesToTry.push(forceType);
+    if (forceType !== 'uint8') {
+      typesToTry.push('uint8');
+    }
   } else {
-    if (caps.canRTTHalfFloat) typesToTry.push('half float');
-    if (caps.canRTTFloat) typesToTry.push('float');
+    // Add types in priority order (only those that caps says are available)
+    if (caps.isWebGL2) {
+      if (caps.canRTTHalfFloat) typesToTry.push('half float');
+      if (caps.canRTTFloat) typesToTry.push('float');
+    } else {
+      if (caps.canRTTHalfFloat) typesToTry.push('half float');
+      if (caps.canRTTFloat) typesToTry.push('float');
+    }
+    // uint8 is always the final fallback
+    typesToTry.push('uint8');
   }
-  // uint8 is always the final fallback
-  typesToTry.push('uint8');
 
   for (const rtType of typesToTry) {
     // Determine filter based on request and capability
