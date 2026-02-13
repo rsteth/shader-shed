@@ -40,6 +40,7 @@ import * as furnaceMire from './furnaceMire';
 export interface Sketch {
   name: string;
   description: string;
+  includeInSlideshow?: boolean;
   sim: string;    // Simulation fragment shader source
   final: string;  // Final/composite fragment shader source
 }
@@ -52,24 +53,28 @@ export const sketches: Record<string, Sketch> = {
   ripple: {
     name: 'Ripple Flow',
     description: 'Interactive fluid ripples with curl noise',
+    includeInSlideshow: false,
     sim: ripple.sim,
     final: ripple.final,
   },
   plasma: {
     name: 'Plasma',
     description: 'Classic plasma effect with sine waves',
+    includeInSlideshow: false,
     sim: plasma.sim,
     final: plasma.final,
   },
   gradient: {
     name: 'Gradient Drift',
     description: 'Smooth flowing color gradients',
+    includeInSlideshow: false,
     sim: gradient.sim,
     final: gradient.final,
   },
   voronoi: {
     name: 'Voronoi Cells',
     description: 'Animated cellular pattern',
+    includeInSlideshow: false,
     sim: voronoi.sim,
     final: voronoi.final,
   },
@@ -157,6 +162,7 @@ export const sketches: Record<string, Sketch> = {
 };
 
 export const sketchIds = Object.keys(sketches);
+export const slideshowSketchIds = sketchIds.filter((id) => sketches[id]?.includeInSlideshow !== false);
 export const defaultSketchId = 'ripple';
 
 export function getSketch(id: string): Sketch {
