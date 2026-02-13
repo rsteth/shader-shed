@@ -238,6 +238,9 @@ export class MultipassSystem {
     this.regl({ framebuffer: this.rt2.fbo })(() => {
       this.regl.clear({ color: [0, 0, 0, 0] });
     });
+    this.regl({ framebuffer: this.postRt.fbo })(() => {
+      this.regl.clear({ color: [0, 0, 0, 1] });
+    });
   }
 
   resize(width: number, height: number) {
@@ -245,6 +248,7 @@ export class MultipassSystem {
     this.rt2.resize(width, height);
     this.postRt.resize(width, height);
     this.uniforms.resize(width, height);
+    this.clearTargets();
   }
 
   render() {
