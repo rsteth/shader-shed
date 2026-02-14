@@ -411,24 +411,24 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom keeps the diagonal quasar pinch, but now adds Furnace-Mire-style stepped harmonic "teeth" so inflow and outflow feel serrated, particulate, and more violent.',
+      'Chiaroscuro Bloom now drives current in the same diagonal direction as the energy beam, with anisotropic stretching so motion trails read elongated along travel rather than crosswise through the core.',
     equation:
       `$$\begin{aligned}
-\mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad q'=(1-0.88\pi)q,\quad \pi=e^{-7.5r}\operatorname{smoothstep}(0.72,-0.08,s)\\
-T&=\max\left(\sin(0.22\,\mathrm{round}(32u)+0.07\,\mathrm{round}(90q)-6.5t)+0.5\sin(0.11\,\mathrm{round}(32u)-4.2t),0\right)\,e^{-18|q|}\\
-S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.65B\,c_{beam}+T\,c_{tooth}+P\,c_{particle},\,\alpha)
+\mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad (s,q)= (\langle\mathbf{p},\hat{\mathbf{d}}\rangle,\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle)\\
+(s',q')&=(0.62s,1.35q),\quad \pi=e^{-7.8r}\operatorname{smoothstep}(0.74,-0.1,s),\quad q_p=(1-0.9\pi)q\\
+S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.7B(s',q')\,c_{beam}+T(s',q')\,c_{tooth}+P(s',q')\,c_{particle},\,\alpha)
 \end{aligned}$$`,
     symbols:
-      `$s=\langle\mathbf{p},\hat{\mathbf{d}}\rangle$ and $q=\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle$ are diagonal coordinates; $q'$ is pinch-compressed width.
-$T$ is the stepped harmonic teeth term (rounded phase bins), adapted from the quantized-harmonic logic that gives Furnace Mire its biting energy texture.`,
+      `$\hat{\mathbf{d}}=(1,1)/\sqrt{2}$ is the beam/current axis. $(s',q')$ is a stretched coordinate frame that elongates structure along travel and tightens it across the beam.
+$T$ is the stepped harmonic teeth term in stretched space, and $q_p$ is the pinch-compressed cross-axis width near the singularity.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'Purple haze is pinched into the singularity, but now the transport field includes quantized harmonic surges. Those surges break smooth flow into jagged bursts, giving the beam and particles sharper “teeth.”',
+        body: 'Flow is now intentionally beam-aligned: gas pinches inward, then rides the same diagonal rail as the outflow. The anisotropic remap makes features feel stretched and accelerated along that path.',
       },
       {
         heading: 'Key variables',
-        body: 'Teeth quantization scales (32 and 90), teeth temporal rates (6.5 and 4.2), pinch gain (0.88), and beam confinement (38) control how gritty/biting versus smooth/cinematic the quasar feels.',
+        body: 'Stretch factors $(0.62,1.35)$, pinch gain $(0.9)$, beam confinement (30 in stretched space), and teeth quantization scales (34, 96) set the balance between smooth rail flow and jagged high-energy bite.',
       },
     ],
   },
