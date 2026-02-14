@@ -201,6 +201,7 @@ export class MultipassSystem {
         uAtlasGrid: () => this.asciiAtlasGrid,
         uGlyphCount: () => this.asciiGlyphCount,
       },
+      framebuffer: this.regl.prop<any, any>('outputFbo'),
       depth: { enable: false },
     });
   }
@@ -269,6 +270,7 @@ export class MultipassSystem {
     if (this.asciiEnabled) {
       this.cmdAscii({
         inputTexture: this.postRt.colorTex,
+        outputFbo: null,
       });
     }
   }

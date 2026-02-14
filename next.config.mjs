@@ -2,6 +2,7 @@
 const basePath = process.env.BASE_PATH ?? '';
 
 const nextConfig = {
+  reactStrictMode: false,
   output: 'export',
   trailingSlash: true,
   basePath,

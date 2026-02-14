@@ -647,7 +647,7 @@ export function createRenderTarget(
       }
 
       // Create framebuffer
-      const fbo = reglInstance.framebuffer({
+      let fbo = reglInstance.framebuffer({
         color: colorTex,
         depth: false,
         stencil: false,
@@ -686,21 +686,50 @@ export function createRenderTarget(
         continue;
       }
 
-      // Success! Create resize/destroy closures
+      // Success! Create resize/destroy closures and result object
       const isWebGL2Float = caps.isWebGL2 && (rtType === 'half float' || rtType === 'float');
+      const result: RenderTarget = {} as RenderTarget;
 
       const resize = (newWidth: number, newHeight: number) => {
         if (isWebGL2Float) {
-          // For WebGL2 float, resize via regl then reinit to float
-          fbo.resize(newWidth, newHeight);
+          // For WebGL2 float targets, regl's fbo.resize() resets the texture
+          // to uint8 internally. Reinitializing via raw GL afterwards fails on
+          // some drivers (GL 1282). Instead, destroy and recreate from scratch.
+          fbo.destroy();
+          colorTex.destroy();
+
+          const newTex = reglInstance.texture({
+            width: newWidth,
+            height: newHeight,
+            type: 'uint8',
+            format: 'rgba',
+            min: minFilter,
+            mag: magFilter,
+            wrap: 'clamp',
+          });
+
           reinitTextureAsFloat(
             gl as WebGL2RenderingContext,
-            colorTex,
+            newTex,
             newWidth,
             newHeight,
             rtType as 'half float' | 'float',
             filter
           );
+
+          const newFbo = reglInstance.framebuffer({
+            color: newTex,
+            depth: false,
+            stencil: false,
+          });
+
+          // Swap internals — mutate the closed-over refs so the
+          // returned RenderTarget object stays valid for callers.
+          colorTex = newTex;
+          fbo = newFbo;
+          // Also update the public-facing fields on the result object
+          result.fbo = newFbo;
+          result.colorTex = newTex;
         } else {
           // Standard regl resize
           fbo.resize(newWidth, newHeight);
@@ -712,15 +741,14 @@ export function createRenderTarget(
         colorTex.destroy();
       };
 
-      return {
-        fbo,
-        colorTex,
-        type: rtType,
-        filter,
-        fallbackFrom: fallbackFrom.length > 0 ? fallbackFrom : undefined,
-        resize,
-        destroy,
-      };
+      result.fbo = fbo;
+      result.colorTex = colorTex;
+      result.type = rtType;
+      result.filter = filter;
+      result.fallbackFrom = fallbackFrom.length > 0 ? fallbackFrom : undefined;
+      result.resize = resize;
+      result.destroy = destroy;
+      return result;
     } catch (err) {
       fallbackFrom.push(rtType);
       console.warn(`[render-target] Failed to create ${rtType} FBO:`, err);
