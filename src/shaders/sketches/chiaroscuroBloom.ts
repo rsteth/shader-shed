@@ -1,6 +1,6 @@
 /**
  * CHIAROSCURO BLOOM SKETCH
- * Quasar diagonal: nebula from lower-left collapses into a singularity, then blasts toward upper-right.
+ * Quasar diagonal: dense lower-left gas collapses into a singularity and erupts brighter toward upper-right.
  */
 
 export const sim = /* glsl */ `
@@ -23,58 +23,56 @@ void main() {
     float t = uTime;
 
     vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
-
-    // Singular core near center, slightly mouse-steerable
-    vec2 coreUv = vec2(0.5) + (uMouse - 0.5) * vec2(0.08, 0.08);
-    vec2 p = (st - coreUv) * aspect;
-
-    // Main diagonal axis: lower-left -> upper-right
     vec2 axis = normalize(vec2(1.0, 1.0));
     vec2 perp = vec2(-axis.y, axis.x);
 
+    // Singularity moves ONLY along the diagonal beam axis (mouse constrained to line).
+    vec2 mouseDelta = uMouse - vec2(0.5);
+    float axisT = dot(mouseDelta, axis);
+    vec2 coreUv = vec2(0.5) + axis * axisT * 0.65;
+
+    vec2 p = (st - coreUv) * aspect;
     float along = dot(p, axis);
     float across = dot(p, perp);
     float r = length(p) + 1e-4;
 
-    // Nebula source region biased to lower-left half-ish
-    float sourceMask = smoothstep(0.38, -0.28, along) * smoothstep(0.58, 0.04, abs(across));
+    // Larger, denser lower-left gas field (more than before).
+    float sourceMask = smoothstep(0.62, -0.34, along) * smoothstep(0.92, 0.03, abs(across));
+    float nebA = fbm((st + vec2(-t * 0.05, t * 0.02)) * 3.0);
+    float nebB = fbm((st + vec2(-0.18 * t, -0.07 * t)).yx * 5.8 + vec2(4.0, -1.5));
+    float nebC = fbm((st + vec2(-0.09 * t, 0.03 * t)) * 10.0 + vec2(2.0, 11.0));
+    float nebula = smoothstep(0.28, 0.95, nebA * 0.65 + nebB * 0.5 + nebC * 0.35) * sourceMask;
 
-    float nebA = fbm((st + vec2(-t * 0.03, t * 0.01)) * 4.2);
-    float nebB = fbm((st + vec2(-0.14 * t, -0.04 * t)).yx * 7.2 + vec2(6.0, -2.0));
-    float nebula = smoothstep(0.35, 0.92, nebA * 0.65 + nebB * 0.55) * sourceMask;
-
-    // Infall dynamics: mostly toward center with swirl and turbulence
+    // Infall + swirl into core.
     vec2 inward = -p / r;
     vec2 swirl = vec2(-inward.y, inward.x);
-    float turbulence = fbm(st * 10.0 + vec2(t * 0.2, -t * 0.17));
-    vec2 flow = normalize(inward * (1.8 + 0.9 * nebula) + swirl * (0.45 + 0.6 * turbulence) + vec2(1e-4));
+    float turbulence = fbm(st * 11.5 + vec2(t * 0.27, -t * 0.21));
+    vec2 flow = normalize(inward * (2.1 + 1.2 * nebula) + swirl * (0.55 + 0.75 * turbulence) + vec2(1e-4));
 
-    // Beam/jet toward upper-right after the chokepoint
-    float beamAxis = exp(-abs(across) * 28.0);
-    float beamForward = smoothstep(-0.04, 0.52, along);
-    float beamPulse = 0.45 + 0.55 * sin(along * 36.0 - t * 7.5 + turbulence * 9.0);
+    // Stronger, brighter ejection to upper-right.
+    float beamAxis = exp(-abs(across) * 36.0);
+    float beamForward = smoothstep(-0.02, 0.92, along);
+    float beamPulse = 0.52 + 0.48 * sin(along * 42.0 - t * 8.8 + turbulence * 11.0);
     float beam = beamAxis * beamForward * beamPulse;
 
-    // Dense particle spark detail around axis/core
-    vec2 cell = floor((p + vec2(t * 0.7, -t * 0.3)) * 85.0);
-    float particle = step(0.994, hash(cell + vec2(floor(t * 12.0), 0.0)));
-    particle *= exp(-abs(across) * 22.0) * smoothstep(-0.2, 0.9, along + 0.15);
+    // Particle detail: dense around beam and explosive around the core.
+    vec2 cell = floor((p + vec2(t * 0.9, -t * 0.35)) * 95.0);
+    float particle = step(0.992, hash(cell + vec2(floor(t * 16.0), 0.0)));
+    particle *= (exp(-abs(across) * 24.0) * smoothstep(-0.25, 1.2, along + 0.15) + exp(-r * 26.0) * 1.2);
 
-    float core = exp(-r * 34.0);
-    float shock = exp(-pow((r - 0.06) * 35.0, 2.0));
+    float core = exp(-r * 38.0);
+    float shock = exp(-pow((r - 0.055) * 42.0, 2.0));
 
-    // Advection carries source through collapse and outflow
-    vec2 carry = (flow * (18.0 + 28.0 * core + 8.0 * nebula) + axis * beam * 11.0) * px;
-    vec3 prev = texture(uPrevState, st - carry).rgb * (0.963 - 0.16 * uDt);
+    vec2 carry = (flow * (20.0 + 36.0 * core + 12.0 * nebula) + axis * beam * 14.0) * px;
+    vec3 prev = texture(uPrevState, st - carry).rgb * (0.962 - 0.15 * uDt);
 
-    // Compose emission
-    vec3 gasCol = mix(vec3(0.06, 0.04, 0.14), vec3(0.45, 0.2, 0.66), nebA) * nebula;
-    vec3 coreCol = vec3(1.0, 0.96, 0.84) * core;
-    vec3 shockCol = vec3(1.0, 0.58, 0.2) * shock;
-    vec3 beamCol = vec3(0.55, 0.86, 1.0) * beam;
-    vec3 particleCol = vec3(0.95, 0.98, 1.0) * particle * (0.5 + 0.5 * beamPulse);
+    vec3 gasCol = mix(vec3(0.08, 0.04, 0.16), vec3(0.62, 0.22, 0.78), nebA) * nebula;
+    vec3 coreCol = vec3(1.0, 0.98, 0.9) * core;
+    vec3 shockCol = vec3(1.0, 0.64, 0.24) * shock;
+    vec3 beamCol = vec3(0.78, 0.95, 1.0) * beam * 1.5;
+    vec3 particleCol = vec3(1.0, 1.0, 1.0) * particle * (0.45 + 0.55 * beamPulse);
 
-    float emptiness = 1.0 - smoothstep(0.16, 0.78, nebula + beam + core);
+    float emptiness = 1.0 - smoothstep(0.11, 0.9, nebula + core + beam * 1.35);
 
     vec3 source = vec3(0.0);
     source += gasCol;
@@ -82,10 +80,10 @@ void main() {
     source += shockCol;
     source += beamCol;
     source += particleCol;
-    source *= (1.0 - 0.9 * emptiness);
+    source *= (1.0 - 0.82 * emptiness);
 
-    float transfer = smoothstep(0.24, 0.0, distance(st, uMouse));
-    float inject = 0.03 + 0.22 * nebula + 0.4 * core + 0.32 * beam + 0.2 * particle + 0.08 * transfer;
+    float transfer = smoothstep(0.28, 0.0, distance(st, coreUv));
+    float inject = 0.04 + 0.3 * nebula + 0.48 * core + 0.52 * beam + 0.26 * particle + 0.12 * transfer;
 
     vec3 color = mix(prev, source, clamp(inject, 0.0, 1.0));
     fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
@@ -103,13 +101,13 @@ uniform float uOpacity;
 void main() {
     vec3 color = texture(uTexture, vUv).rgb;
 
-    float vignette = smoothstep(1.0, 0.1, distance(vUv, vec2(0.5)));
-    float diagonalFlare = exp(-abs((vUv.x - 0.5) - (vUv.y - 0.5)) * 12.0);
-    float flicker = 0.96 + 0.04 * sin(uTime * 6.0 + (vUv.x + vUv.y) * 40.0);
+    float vignette = smoothstep(1.0, 0.08, distance(vUv, vec2(0.5)));
+    float diagonalFlare = exp(-abs((vUv.x - 0.5) - (vUv.y - 0.5)) * 10.0);
+    float flicker = 0.95 + 0.05 * sin(uTime * 7.5 + (vUv.x + vUv.y) * 48.0);
 
     color *= vignette;
-    color += vec3(0.08, 0.12, 0.2) * diagonalFlare * flicker;
-    color = pow(color, vec3(0.9));
+    color += vec3(0.12, 0.16, 0.22) * diagonalFlare * flicker;
+    color = pow(color, vec3(0.88));
 
     fragColor = vec4(clamp(color, 0.0, 1.0), uOpacity);
 }

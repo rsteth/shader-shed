@@ -411,24 +411,24 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom is now a diagonal quasar scene: a nebulous lower-left gas field is pulled into a central singularity, then expelled as a bright beam toward the upper-right.',
+      'Chiaroscuro Bloom now emphasizes a heavy lower-left gas reservoir feeding a singularity that can slide only along the diagonal energy rail, then venting brighter outflow toward the upper-right.',
     equation:
       `$$\begin{aligned}
-\mathbf{p}&=((\mathbf{x}-\mathbf{c})\odot(a,1)),\quad s=\langle\mathbf{p},\hat{\mathbf{d}}\rangle,\quad q=\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle\\
-N&=\operatorname{smoothstep}(0.38,-0.28,s)\operatorname{smoothstep}(0.58,0.04,|q|)\,\operatorname{smoothstep}(0.35,0.92,0.65n_1+0.55n_2)\\
-S_{t+1}&=\operatorname{mix}(0.963S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+B\,c_{beam}+P\,c_{particle},\,\alpha)
+\mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad \hat{\mathbf{d}}=(1,1)/\sqrt{2}\\
+N&=\operatorname{smoothstep}(0.62,-0.34,s)\operatorname{smoothstep}(0.92,0.03,|q|)\,\operatorname{smoothstep}(0.28,0.95,0.65n_1+0.5n_2+0.35n_3)\\
+S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.5B\,c_{beam}+P\,c_{particle},\,\alpha)
 \end{aligned}$$`,
     symbols:
-      `$\hat{\mathbf{d}}=(1,1)/\sqrt{2}$ is the diagonal beam axis; $N$ is source-nebula occupancy in the lower-left region.
-$C=e^{-34r}$ is core intensity, $B=e^{-28|q|}\,\operatorname{smoothstep}(-0.04,0.52,s)\,\beta$ is forward beam energy, and $P$ is stochastic particle spark occupancy.`,
+      `$s=\langle\mathbf{p},\hat{\mathbf{d}}\rangle$ and $q=\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle$ are diagonal/orthogonal coordinates about the singularity.
+$C=e^{-38r}$ is core compression, $B=e^{-36|q|}\,\operatorname{smoothstep}(-0.02,0.92,s)\,\beta$ is forward beam energy, and $P$ is stochastic spark occupancy from a high-density grid.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'Gas is generated asymmetrically in the lower-left, spirals inward under turbulent advection, flashes at the singularity, then exits along a directional jet so the scene reads as collapse + explosion rather than symmetric bloom.',
+        body: 'A broad nebula field forms in the lower-left diagonal, collapses into a tight core, then explodes into a brighter top-right beam with drifting particulate detail.',
       },
       {
         heading: 'Key variables',
-        body: 'Beam confinement (28), core falloff (34), source mask thresholds $(0.38,-0.28)$ and particle grid density (85) control how focused, energetic, and detailed the quasar effect appears.',
+        body: 'Source-mask bounds $(0.62,-0.34)$, beam confinement (36), core falloff (38), and particle grid scale (95) are the key levers for mass, brightness contrast, and perceived kinetic detail.',
       },
     ],
   },
