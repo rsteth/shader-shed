@@ -68,6 +68,9 @@ export default function Home() {
               className="about-panel relative z-10 mt-3 max-h-[52vh] overflow-y-auto rounded-xl border border-white/20 p-4 text-sm"
             >
               <h2 className="about-blend text-base font-semibold">{sketch?.name ?? activeSketch}</h2>
+              {sketch?.meta?.attribution && (
+                <p className="about-blend mt-1 text-xs italic text-zinc-300/90">{sketch.meta.attribution}</p>
+              )}
               <MathText text={about.equation} className="about-blend mt-2 space-y-2" />
               <MathText
                 text={about.symbols}
