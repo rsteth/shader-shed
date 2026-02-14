@@ -43,6 +43,9 @@ export interface Sketch {
   sim: string;    // Simulation fragment shader source
   final: string;  // Final/composite fragment shader source
   includeInSlideshow?: boolean;
+  meta?: {
+    attribution?: string;
+  };
 }
 
 /**
@@ -84,12 +87,18 @@ export const sketches: Record<string, Sketch> = {
     description: 'Dense oscillatory field with warped feedback sampling',
     sim: event2.sim,
     final: event2.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   rocaille: {
     name: 'Rocaille',
     description: 'Layered trigonometric filigree with spatial phase offsets',
     sim: rocaille.sim,
     final: rocaille.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
 
   rocailleGlitch: {
@@ -110,54 +119,81 @@ export const sketches: Record<string, Sketch> = {
     description: 'Rocaille variant without resolution phase offset in the inner loop',
     sim: rocaille2.sim,
     final: rocaille2.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   cathedralMist: {
     name: 'Cathedral Mist',
     description: 'Volumetric cosine folds with refracted inner turbulence',
     sim: cathedralMist.sim,
     final: cathedralMist.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   eventideHelix: {
     name: 'Eventide Helix',
     description: 'Stepped oscillatory field with sine-warped feedback trails',
     sim: eventideHelix.sim,
     final: eventideHelix.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   emberArray: {
     name: 'Ember Array',
     description: 'Dense orbital fold cloud with chromatic ray accumulation',
     sim: emberArray.sim,
     final: emberArray.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   silkSpindle: {
     name: 'Silk Spindle',
     description: 'Cross-product drift lattice disturbed by quantized cosine pulses',
     sim: silkSpindle.sim,
     final: silkSpindle.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   axialChoir: {
     name: 'Axial Choir',
     description: 'Rotated ray bundle with anisotropic depth and harmonic tinting',
     sim: axialChoir.sim,
     final: axialChoir.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   prismTangle: {
     name: 'Prism Tangle',
     description: 'Rounded fold filigree with radial prism-like grading',
     sim: prismTangle.sim,
     final: prismTangle.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   noctilucentArc: {
     name: 'Noctilucent Arc',
     description: 'Phase-shifted shell growth with sinusoidal volumetric trails',
     sim: noctilucentArc.sim,
     final: noctilucentArc.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
   furnaceMire: {
     name: 'Furnace Mire',
     description: 'Chaotic folded plasma with rounded-step harmonic diffusion',
     sim: furnaceMire.sim,
     final: furnaceMire.final,
+    meta: {
+      attribution: 'Adapted from sketch by @XorDev',
+    },
   },
 };
 
