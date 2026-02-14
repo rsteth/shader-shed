@@ -409,6 +409,99 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
       },
     ],
   },
+  chiaroscuroBloom: {
+    intro:
+      'Chiaroscuro Bloom balances luminous paper-white highlights against velvety ink shadows, then smears both through gentle feedback advection.',
+    equation:
+      `$$\begin{aligned}
+\theta&=\operatorname{atan2}(y-0.5,x-0.5),\quad r=\lVert\mathbf{x}-0.5\rVert\\
+\sigma&=\operatorname{fbm}(2\theta,8r-0.35t),\quad f=\sin(11\theta+18r-1.6t+4\sigma)\\
+M&=\operatorname{smoothstep}(-0.2,0.7,f-1.1r),\quad S_{t+1}=\operatorname{mix}(0.975S_t(\mathbf{x}-14\mathbf{c}\odot\mathbf{p}),\,\operatorname{mix}(c_{ink},c_{paper},M),\,\alpha)
+\end{aligned}$$`,
+    symbols:
+      `$\mathbf{c}$ is a two-channel curl-like noise field from fbm differences.
+$\alpha=0.09+0.16\,g_m$ and $g_m=\operatorname{smoothstep}(0.18,0,\lVert\mathbf{x}-uMouse\rVert)$.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'A composition mask partitions space into dark and light lobes; feedback advection then drags those lobes into painterly bloom trails.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Angular frequency (11), radial gain (18), and advection distance (14 pixels) are the most perceptible controls for detail density and motion feel.',
+      },
+    ],
+  },
+  eclipseWeave: {
+    intro:
+      'Eclipse Weave builds a moving umbra around the cursor, then threads emissive corona rings and crossed wave lattices around that core.',
+    equation:
+      `$$\begin{aligned}
+\mathbf{p}&=\mathbf{x}-\operatorname{mix}(0.5,\,uMouse,\,0.6),\quad r=\lVert\mathbf{p}\rVert\\
+E&=\operatorname{smoothstep}(0.24,0.04,r),\quad C=\operatorname{smoothstep}(0.18,0.45,r)\operatorname{smoothstep}(0.65,0.3,r)\\
+L&=\max(\sin(35r-2.2t),0)\,C\,(0.85,0.35,0.95)+\max(\sin(22(p_x+p_y)+0.8t)\cos(19(p_x-p_y)-0.7t),0)(1-E)\,(0.2,0.45,1.0)
+\end{aligned}$$`,
+    symbols:
+      `$E$: eclipse mask (dark core), $C$: corona window.
+Feedback sample offset is $12\,\mathbf{p}_{ix}$-scaled by woven phase fields.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'The shader composes concentric structure (rings) with directional interference (weave) so foreground darkness and background emission stay in tension.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Ring frequency, corona radius window, and cursor-follow blend (0.6) strongly alter perceived orbit size and eclipse drama.',
+      },
+    ],
+  },
+  umbraDrift: {
+    intro:
+      'Umbra Drift is a low-frequency fog field where cross-rotated noise advects color while dark wells open and close like weather systems.',
+    equation:
+      `$$\begin{aligned}
+\mathbf{n}&=(\operatorname{fbm}(3.2\mathbf{x}+(0,t))-0.5,\operatorname{fbm}(3.2\mathbf{x}+(9,-1.1t))-0.5),\quad \\mathbf{f}=(n_y,-n_x)\\
+S_{t+1}&=0.98S_t(\mathbf{x}-20\mathbf{f}\odot\mathbf{p})\\
+B&=0.5+0.5\sin(7x-5y+2.4t+\pi\,m),\quad m=\operatorname{fbm}(2.6\mathbf{x}+0.9\mathbf{f}+(0.4t,-0.35t))
+\end{aligned}$$`,
+    symbols:
+      `Darkness gate uses $D=\operatorname{smoothstep}(0.62,0.28,m+0.25g_m)$.
+$g_m=\operatorname{smoothstep}(0.3,0,\lVert\mathbf{x}-uMouse\rVert)$ deepens local shadow.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'Advection carries prior luminance through a slow incompressible-like drift while a mist scalar modulates both chroma and occlusion.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Flow scale (20), mist frequency (2.6/3.2), and darkness threshold window (0.62 to 0.28) control softness versus stark contrast.',
+      },
+    ],
+  },
+  lumenGlyphs: {
+    intro:
+      'Lumen Glyphs carves glowing symbol-like contours from thresholded harmonic sums and lets those contours linger in neon turbulence.',
+    equation:
+      `$$\begin{aligned}
+G(\mathbf{q},\phi)&=\operatorname{smoothstep}(1.25,1.45,\sin q_x+\sin(1.7q_y-0.7\phi)+\sin(0.9(q_x+q_y)+1.2\phi))\\
+\Sigma&=\operatorname{clamp}(G(11(\mathbf{p}+0.22\mathbf{w}),1.1t)+G(8(\mathbf{p}_{yx}+0.18\mathbf{w}),-0.8t),0,1)\\
+S_{t+1}&=\operatorname{mix}(0.974S_t(\mathbf{x}-10\mathbf{w}^\perp\odot\mathbf{p}),\,\operatorname{mix}(c_0,c_1,\Sigma),\,0.08+0.2\Sigma)
+\end{aligned}$$`,
+    symbols:
+      `$\mathbf{w}$: fbm wobble vector; $\mathbf{w}^\perp=(w_y,-w_x)$.
+$c_0=(0.05,0.04,0.1)$ and $c_1=(0.35,0.95,0.85)$ are base neon endpoints.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'Two harmonic glyph fields at different scales are thresholded and merged, producing intermittent rune-like contours that persist via feedback.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Threshold band (1.25 to 1.45), glyph scales (11 and 8), and feedback persistence (0.974) define symbol legibility and trail duration.',
+      },
+    ],
+  },
+
 };
 
 function buildOperatorLegend(equation: string): string[] {
