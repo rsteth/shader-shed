@@ -68,7 +68,12 @@ export default function Home() {
               className="about-panel relative z-10 mt-3 max-h-[52vh] overflow-y-auto rounded-xl border border-white/20 p-4 text-sm"
             >
               <h2 className="about-blend text-base font-semibold">{sketch?.name ?? activeSketch}</h2>
-              <MathText text={about.intro} className="about-blend mt-2 space-y-2" />
+              <MathText text={about.equation} className="about-blend mt-2 space-y-2" />
+              <MathText
+                text={about.symbols}
+                className="about-blend mt-1 text-[11px] leading-relaxed text-zinc-300/90 space-y-1"
+              />
+              <MathText text={about.intro} className="about-blend mt-4 space-y-2" />
               <div className="mt-3 space-y-3">
                 {about.sections.map((section) => (
                   <div key={section.heading} className="rounded-lg border border-white/15 p-3">

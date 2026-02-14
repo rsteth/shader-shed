@@ -7,12 +7,20 @@ export interface SketchAboutSection {
 
 export interface SketchAbout {
   intro: string;
+  equation: string;
+  symbols: string;
   sections: SketchAboutSection[];
 }
 
 export const defaultAbout: SketchAbout = {
   intro:
     'This sketch evolves a feedback buffer over time. The simulation pass writes a new state, and the final pass color-grades that state into the image you see.',
+  equation:
+    '$$S_{t+1}(\\mathbf{x}) = F\\big(S_t,\\mathbf{x},t;\\Theta\\big),\\qquad C(\\mathbf{x}) = G\\big(S_{t+1}(\\mathbf{x})\\big).$$',
+  symbols:
+    `$\\Theta$: hard-coded shader constants in the active sketch.
+$t$: time-dependent uniforms such as $uTime$.
+$\\mathbf{x}$: normalized screen coordinate.`,
   sections: [
     {
       heading: 'Core idea',
@@ -29,6 +37,15 @@ export const sketchAbout: Record<string, SketchAbout> = {
   ripple: {
     intro:
       'Ripple Flow uses a feedback texture as a fluid-like height field, then advects it with curl-style motion so waves keep curling and spreading.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{f}(\\mathbf{x},t)&=2\\,\\mathrm{fbm}(3\\mathbf{x}+0.1t,\\,3\\mathbf{x}+0.1t+10)-1\\\\
+\\mathbf{x}_f&=\\mathbf{x}-2\\,\\mathbf{f}\\odot\\mathbf{p},\\quad \\mathbf{p}=1/\\mathbf{R}\\\\
+S_{t+1}(\\mathbf{x})&=0.99\\,S_t(\\mathbf{x}_f)+2\\,\\mathrm{smoothstep}(0.05,0,\\lVert\\mathbf{x}-\\mathbf{m}\\rVert)
+\\end{aligned}$$`,
+    symbols:
+      `$\\mathbf{R}=uResolution$, $\\mathbf{m}=uMouse$.
+$S_t$: previous feedback state.
+$t$: live time uniform ($uTime$).`,
     sections: [
       {
         heading: 'What is happening',
@@ -43,6 +60,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   plasma: {
     intro:
       'Plasma layers sinusoidal bands in different directions and frequencies, then maps the result to vivid color ramps.',
+    equation:
+      `$$\\begin{aligned}v&=\\sin(10x+0.5t)+\\sin(10y+0.4t)+\\sin(10(x+y)+0.3t)\\\\
+&\\quad+\\sin(20r_c-t)+0.5\\sin(15r_m-1.5t),\\quad r_c=\\lVert\\mathbf{x}-(0.5,0.5)\\rVert,\\ r_m=\\lVert\\mathbf{x}-\\mathbf{m}\\rVert\\\\
+v_n&=(v+5)/10,\\quad C_k=0.5+0.5\\sin(2\\pi v_n+\\phi_k),\\ \phi=(0,2.094,4.188)
+\\end{aligned}$$`,
+    symbols:
+      `$t=uTime$ and $\\mathbf{m}=uMouse$.
+All frequencies and phase offsets are hard-coded constants from the shader.`,
     sections: [
       {
         heading: 'What is happening',
@@ -57,6 +82,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   gradient: {
     intro:
       'Gradient Drift starts from smooth spatial gradients, then adds slow temporal warping so color boundaries bend like silk.',
+    equation:
+      `$$\\begin{aligned}n_1&=\\mathrm{fbm}(2\\mathbf{x}+0.06t),\\ n_2=\\mathrm{fbm}(2\\mathbf{x}-0.045t+100),\\ n_3=\\mathrm{fbm}(3\\mathbf{x}+(0.03t,-0.036t))\\\\
+C_b&=\\mathrm{mix}(\\mathrm{mix}(\\mathrm{mix}(c_1,c_2,n_1),c_3,n_2),c_4,0.5n_3)\\\\
+S_{t+1}&=\\mathrm{mix}(0.95S_t(\\mathbf{x}-1.5\\mathbf{d}\\odot\\mathbf{p}),C_b,0.15)+g_m(0.3,0.2,0.4)
+\\end{aligned}$$`,
+    symbols:
+      `$\\mathbf{d}=\\mathrm{rotate}((1,0),6.28n_1)$, $\\mathbf{p}=1/uResolution$.
+$g_m=\\mathrm{smoothstep}(0.15,0,\\lVert\\mathbf{x}-uMouse\\rVert)$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -71,6 +104,15 @@ export const sketchAbout: Record<string, SketchAbout> = {
   voronoi: {
     intro:
       'Voronoi Cells computes nearest animated seed points to partition space into living cellular regions.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{u}&=5(x\\,a,y)+(uMouse-0.5)\\cdot0.5,\\quad a=R_x/R_y\\\\
+\\mathbf{o}_i(t)&=0.5+0.4\\sin(0.5t+2\\pi\\,\\mathrm{rand}(\\mathbf{p}_i))\\\\
+d_i&=\\lVert(\\mathbf{n}_i+\\mathbf{o}_i)-\\mathrm{fract}(\\mathbf{u})\\rVert,\\quad d=\\min_i d_i\\\\
+C&=\\mathrm{mix}(0.3S_t+0.0,\\ C_{cell}(d,\\mathrm{id},t),\\ 0.85)
+\\end{aligned}$$`,
+    symbols:
+      `$R_x,R_y$: resolution components.
+$C_{cell}$ includes the hard-coded channel oscillations $(12,15,18)$ and edge smoothstep $(0,0.05)$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -85,6 +127,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   event2: {
     intro:
       'Event 2 builds a dense oscillatory field and samples feedback through quantized warps to create stepped motion.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{p}&=\\frac{2\\mathbf{f}-\\mathbf{R}}{0.3R_y},\\ \\mathbf{v}_{f+1}=\\mathbf{v}_f+\\frac{\\sin(\\lceil f\\mathbf{v}_{yx}+0.3i\\rceil+\\mathbf{R}-0.5t)}{f}\\\\
+\\ell&=\\lVert\\mathbf{p}\\rVert^2-5-\\frac{2}{v_y},\\quad O\\mathrel{+}=\\frac{0.1}{|\\ell|}\\left(\\cos\\left(\\frac{i}{3}+\\frac{0.1}{\\ell}+\\boldsymbol\\phi\\right)+1\\right)\\\\
+S_{t+1}&=\\max\\!\\left(\\tanh\\left(O+S_t(\\mathbf{u}+0.04R_y\\sin(\\mathbf{u}+\\mathbf{u}_{yx}/0.6))^2\\right),0\\right)
+\\end{aligned}$$`,
+    symbols:
+      `$\\mathbf{f}=vUv\\odot\\mathbf{R}$, $\\mathbf{u}=\\mathbf{f}/\\mathbf{R}$, $\\boldsymbol\\phi=(1,2,3,4)$.
+$t=uTime$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -99,6 +149,13 @@ export const sketchAbout: Record<string, SketchAbout> = {
   rocaille: {
     intro:
       'Rocaille layers trigonometric filigree motifs with spatial phase offsets to produce ornate baroque flow.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{p}&=\\frac{2\\mathbf{f}-\\mathbf{R}}{0.3R_y},\\quad \\mathbf{v}_{f+1}=\\mathbf{v}_f+\\frac{\\sin(\\mathbf{v}_{yx}f+i+\\mathbf{R}+t)}{f}\\\\
+O&=\\sum_{i=1}^{10}\\frac{\\cos(i+\\boldsymbol\\phi)+1}{6\\max(\\lVert\\mathbf{v}\\rVert,10^{-3})},\\qquad S=\\tanh(O^2)
+\\end{aligned}$$`,
+    symbols:
+      `$\\boldsymbol\\phi=(0,1,2,3)$ per color channel.
+$i\\in[1,10],f\\in[1,9]$ are fixed loop ranges.`,
     sections: [
       {
         heading: 'What is happening',
@@ -113,6 +170,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   rocailleGlitch: {
     intro:
       'Rocaille Glitch fuses ornamental harmonics with stepped feedback distortion for a carved-then-fractured look.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{v}_{f+1}&=\\mathbf{v}_f+\\frac{\\sin(\\lceil1.2f\\mathbf{v}_{yx}+0.37i\\rceil+0.003\\mathbf{R}+t(0.8,-0.6))}{f}\\\\
+O&\\mathrel{+}=\\left(\\cos\\left(\\frac{i}{2.7}+\\boldsymbol\\psi\\right)+1\\right)\\left(\\frac{0.07}{\\lVert\\mathbf{v}\\rVert}+\\frac{0.03}{g}\\right),\\ g=\\max\\!\\left(|\\lVert\\mathbf{p}\\rVert^2-3.2-\\frac{1.6}{|v_y|}|,10^{-3}\\right)\\\\
+S_{t+1}&=1-e^{-0.97\\max(\\tanh(0.9O^2)+0.42S_t(\\mathbf{u}+0.035R_y\\sin(\\mathbf{u}_{yx}/0.7+t(1.7,-1.3))),0)}
+\\end{aligned}$$`,
+    symbols:
+      `$\\boldsymbol\\psi=(0,1.3,2.6,3.9)$.
+Feedback gain/decay are hard coded as $0.42$ and $0.97$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -127,6 +192,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   rocaille2Glitch: {
     intro:
       'Rocaille 2 Glitch keeps the Rocaille 2 motif language while applying stronger stepped warp logic in feedback.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{v}_{f+1}&=\\mathbf{v}_f+\\frac{\\sin(\\lceil f\\mathbf{v}_{yx}+0.28i+0.15t\\rceil+t(0.9,-0.7))}{f}\\\\
+O&\\mathrel{+}=\\left(\\cos(i+\\boldsymbol\\phi)+1\\right)\\left(\\frac{0.085}{\\lVert\\mathbf{v}\\rVert}+\\frac{0.02}{g}\\right),\\ g=\\max\\!\\left(|\\lVert\\mathbf{p}\\rVert^2-4.2-\\frac{1.4}{|v_y|}|,10^{-3}\\right)\\\\
+S_{t+1}&=1-e^{-0.97\\max(\\tanh(O^2)+0.4S_t(\\mathbf{u}+0.04R_y\\sin(\\mathbf{u}+\\mathbf{u}_{yx}/0.6+t(1.2,-1.6))),0)}
+\\end{aligned}$$`,
+    symbols:
+      `$\\boldsymbol\\phi=(0,1,2,3)$.
+Rocaille-2 removes the extra $+\\mathbf{R}$ phase term used in Rocaille.`,
     sections: [
       {
         heading: 'What is happening',
@@ -141,6 +214,13 @@ export const sketchAbout: Record<string, SketchAbout> = {
   rocaille2: {
     intro:
       'Rocaille 2 is a cleaner Rocaille variant with less inner-loop phase offset, yielding smoother continuity.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{p}&=\\frac{2\\mathbf{f}-\\mathbf{R}}{0.3R_y},\\quad \\mathbf{v}_{f+1}=\\mathbf{v}_f+\\frac{\\sin(\\mathbf{v}_{yx}f+i+t)}{f}\\\\
+O&=\\sum_{i=1}^{10}\\frac{\\cos(i+\\boldsymbol\\phi)+1}{6\\max(\\lVert\\mathbf{v}\\rVert,10^{-3})},\\qquad S=\\tanh(O^2)
+\\end{aligned}$$`,
+    symbols:
+      `$\\boldsymbol\\phi=(0,1,2,3)$.
+Compared with Rocaille, the hard-coded $+\\mathbf{R}$ term is omitted.`,
     sections: [
       {
         heading: 'What is happening',
@@ -155,6 +235,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   cathedralMist: {
     intro:
       'Cathedral Mist uses layered cosine folds and refracted turbulence to evoke shafts of luminous fog inside vaulted space.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{p}&=\\frac{z(2\\mathbf{f}-\\mathbf{R})}{R_y}+1,\\quad \\mathbf{w}\\leftarrow\\mathbf{p}+\\sum_{f=1}^{5}\\frac{\\sin(\\mathbf{w}_{zxy}f-9e^{-d/0.1}+t)}{f}\\\\
+O&\\mathrel{+}=0.03d\\left|\\mathrm{mix}(\\mathbf{p},\\mathbf{w},0.1)_y+(0,1,2,3)/100\\right|^{-1}\\\\
+d&=0.3(\\lVert\\cos(\\mathbf{p}_{xz})\\rVert-0.4),\\quad z\\leftarrow z+d,\\quad S=\\tanh(O)
+\\end{aligned}$$`,
+    symbols:
+      `$z$: march depth, initialized to $0$.
+Loop counts are hard-coded: outer $100$, inner $5$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -169,6 +257,15 @@ export const sketchAbout: Record<string, SketchAbout> = {
   eventideHelix: {
     intro:
       'Eventide Helix rotates oscillatory layers into helix-like trajectories and leaves delayed trails through feedback.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{v}_{f+1}&=\\mathbf{v}_f+\\frac{\\sin(\\lceil f\\mathbf{v}_{yx}+0.7i\\rceil+\\mathbf{R}-0.5t)}{f}\\\\
+\\ell&=\\lVert\\mathbf{p}\\rVert-2-\\frac{1}{\\max(v_y-v_x,10^{-3})},\\quad D=\\max(\\ell,-9\\ell)\\\\
+O&\\mathrel{+}=\\frac{0.03}{D}\\left(\\cos\\left(\\frac{i}{3}+\\frac{0.1}{\\max(\\ell,10^{-3})}+\\boldsymbol\\phi\\right)+1\\right)\\\\
+S_{t+1}&=\\max\\left(\\tanh\\left(O+S_t(\\mathbf{u}+0.03R_y\\sin(\\mathbf{u}+\\mathbf{u}_{yx}/0.6))\\,O\\right),0\\right)
+\\end{aligned}$$`,
+    symbols:
+      `$\\boldsymbol\\phi=(0,1,2,3)$.
+Feedback warp amplitude is fixed at $0.03R_y$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -183,6 +280,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   emberArray: {
     intro:
       'Ember Array stacks orbital folds and chromatic accumulation so the scene reads like sparks suspended in dense heat.',
+    equation:
+      `$$\\begin{aligned}h&=\\mathbf{p}\\cdot\\frac{\\mathbf{p}}{|\\mathbf{p}|}-t,\\quad \\mathbf{a}=\\mathrm{mix}(\\langle\\mathbf{a}+0.5,\\mathbf{p}\\rangle(\\mathbf{a}+0.5),\\mathbf{p},\\sin h)+\\cos h\\,(\\mathbf{a}+0.5)\\times\\mathbf{p}\\\\
+\\mathbf{a}&\\leftarrow\\mathbf{a}+0.3\\sum_{j=1}^{9}\\sin(j\\mathbf{a})_{zxy},\\quad d=\\max(\\lVert\\mathbf{a}_{xz}\\rVert/15,10^{-3})\\\\
+O&\\mathrel{+}=\\frac{(9,5,h+t,1)}{d},\\quad z\\leftarrow z+d,\\quad S=\\tanh(O/10^4)
+\\end{aligned}$$`,
+    symbols:
+      `Outer loop count is $80$ steps.
+Camera depth offset is hard-coded as $p_z\!+=9$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -197,6 +302,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   silkSpindle: {
     intro:
       'Silk Spindle builds a drifting lattice from cross-product geometry, then perturbs it with quantized cosine pulses.',
+    equation:
+      `$$\\begin{aligned}h&=t-\\lVert\\mathbf{p}\\odot\\mathbf{p}_{yzx}\\rVert,\\quad \\mathbf{a}=\\mathrm{mix}(\\langle\\mathbf{a},\\mathbf{p}\\rangle\\mathbf{a},\\mathbf{p},\\sin h)+\\cos h\\,(\\mathbf{a}\\times\\mathbf{p})\\\\
+\\mathbf{a}&\\leftarrow\\mathbf{a}-\\sum_{j=1}^{9}\\frac{\\cos(\\mathrm{round}(j\\mathbf{a})+t)_{zxy}}{j},\\quad d=\\max(0.1\\lVert\\mathbf{a}_{xz}\\rVert,10^{-3})\\\\
+O&\\mathrel{+}=\\frac{(h,1,4,1)}{d},\\quad z\\leftarrow z+d,\\quad S=\\tanh(O/2000)
+\\end{aligned}$$`,
+    symbols:
+      `$\\mathbf{a}$ starts as $(0,1,0)$ each march step.
+Outer loop count is fixed at $40$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -211,6 +324,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   axialChoir: {
     intro:
       'Axial Choir rotates ray bundles through anisotropic depth fields and harmonically tints their accumulated energy.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{v}&=\\mathrm{normalize}(\\cos((t+i)/2+(6,1,4))),\\quad \\mathbf{p}\\leftarrow(\\mathbf{v}\\cdot\\mathbf{p})\\mathbf{v}+\\mathbf{v}\\times\\mathbf{p}\\\\
+d&=\\max\\left(0.2\\left\\lVert\\left(p_x,\\frac{p_y}{9}\\right)\\right\\rVert,10^{-3}\\right),\\quad O\\mathrel{+}=\\frac{(3,z,6,1)}{d\\max(z,10^{-3})}\\\\
+z&\\leftarrow z+d,\\quad S=\\tanh(O/200)
+\\end{aligned}$$`,
+    symbols:
+      `Outer march loop is hard-coded to $50$ steps.
+Depth seed is $p_z\!+=9$ before rotation.`,
     sections: [
       {
         heading: 'What is happening',
@@ -225,6 +346,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   prismTangle: {
     intro:
       'Prism Tangle folds rounded filigree volumes and grades them radially to mimic refractive prism facets.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{a}&=\\mathbf{p}-0.9\\mathbf{p}_{xzy},\\quad \\mathbf{a}\\leftarrow\\mathbf{a}+\\sum_{j=1}^{9}\\frac{\\sin(\\mathrm{round}(j\\mathbf{a})_{yzx}+t)}{j}\\\\
+d&=\\max\\left(\\frac{\\left\\lVert(0.3\\sin(\\mathbf{a}^2),\\cos(\\lVert\\mathbf{p}\\rVert/0.3))\\right\\rVert}{6},10^{-3}\\right),\\quad z\\leftarrow z+d\\\\
+O&\\mathrel{+}=\\frac{(\\lVert\\mathbf{p}\\rVert,2,z,1)}{d\\max(\\lVert\\mathbf{p}\\rVert,10^{-3})\\max(z,10^{-3})},\\quad S=\\tanh(O^2/10^6)
+\\end{aligned}$$`,
+    symbols:
+      `Outer loop count is $60$.
+The fold coefficient $0.9$ and radial divisor $0.3$ are hard-coded.`,
     sections: [
       {
         heading: 'What is happening',
@@ -239,6 +368,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   noctilucentArc: {
     intro:
       'Noctilucent Arc grows luminous shells with phase-shifted sinusoidal modulation and airy volumetric trails.',
+    equation:
+      `$$\\begin{aligned}s&=-t-z,\\quad \\mathbf{a}=\\mathrm{mix}(\\langle(-1,0,0),\\mathbf{p}\\rangle(-1,0,0),\\mathbf{p},\\sin s)+\\cos s\\,((-1,0,0)\\times\\mathbf{p})\\\\
+\\mathbf{a}&\\leftarrow\\mathbf{a}+\\sum_{j=1}^{9}\\frac{\\sin(\\lceil j\\mathbf{a}\\rceil-t)_{yzx}}{j},\\quad q=\\sqrt{\\max(\\lVert\\mathbf{a}_{yz}\\rVert,10^{-3})}\\\\
+d&=\\max(\\lVert\\sin(\\mathbf{a})\\rVert q/20,10^{-3}),\\ z\\leftarrow z+d,\\ O\\mathrel{+}=\\frac{(z,1,q,1)}{qd},\\quad S=\\tanh(O/5000)
+\\end{aligned}$$`,
+    symbols:
+      `Outer march count is $100$.
+Depth offset before dynamics is $p_z\!+=5$.`,
     sections: [
       {
         heading: 'What is happening',
@@ -253,6 +390,14 @@ export const sketchAbout: Record<string, SketchAbout> = {
   furnaceMire: {
     intro:
       'Furnace Mire drives a chaotic folded plasma through rounded-step diffusion for molten, smoldering turbulence.',
+    equation:
+      `$$\\begin{aligned}\\mathbf{a}&=(0.57,0.57,0.57),\\quad \\mathbf{a}\\leftarrow(\\mathbf{a}\\cdot\\mathbf{p})\\,\\mathbf{a}\\,\\,(\\mathbf{a}\\times\\mathbf{p})\\\\
+s&=\\sqrt{\\max(\\lVert\\mathbf{a}_{xz}-a_y-0.8\\rVert,10^{-3})},\\quad \\mathbf{a}\\leftarrow\\mathbf{a}+\\sum_{j=2}^{9}\\frac{\\sin(\\mathrm{round}(j\\mathbf{a})-t)_{yzx}}{j}\\\\
+d&=\\max(\\lVert\\sin(10\\mathbf{a})\\rVert s/20,10^{-3}),\\ z\\leftarrow z+d,\\ O\\mathrel{+}=\\frac{(s,2,z,1)}{sd},\\quad S=\\tanh(O/4000)
+\\end{aligned}$$`,
+    symbols:
+      `Outer march count is $80$.
+The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
     sections: [
       {
         heading: 'What is happening',
@@ -266,11 +411,60 @@ export const sketchAbout: Record<string, SketchAbout> = {
   },
 };
 
+function buildOperatorLegend(equation: string): string[] {
+  const legend: string[] = [];
+
+  if (equation.includes('fbm')) {
+    legend.push('$\\operatorname{fbm}(\\mathbf{x})$: fractal Brownian motion noise (sum of octave noise layers).');
+  }
+
+  if (equation.includes('smoothstep')) {
+    legend.push(
+      '$\\operatorname{smoothstep}(e_0,e_1,x)$: cubic Hermite interpolation from 0 to 1 after clamping $x$ to $[e_0,e_1]$.'
+    );
+  }
+
+  return legend;
+}
+
+function buildVariableLegend(equation: string): string[] {
+  const definitions: Array<{ token: string; label: string }> = [
+    { token: '\\mathbf{p}', label: "$\\mathbf{p}$: working position/sample coordinate in the sketch's transformed space." },
+    { token: '\\mathbf{v}', label: '$\\mathbf{v}$: iterative warped coordinate/vector used inside harmonic loops.' },
+    { token: '\\mathbf{a}', label: '$\\mathbf{a}$: auxiliary accumulator vector used for fold/cross-product dynamics.' },
+    { token: '\\mathbf{u}', label: '$\\mathbf{u}$: normalized UV/sample coordinate used for feedback lookup.' },
+    { token: '\\mathbf{f}', label: '$\\mathbf{f}$: fragment coordinate in pixels ($vUv \\odot uResolution$).' },
+    { token: '\\mathbf{R}', label: '$\\mathbf{R}$: resolution vector ($uResolution$).' },
+    { token: '$O$', label: '$O$: accumulated radiance/color term before final tone mapping.' },
+    { token: '$z$', label: '$z$: raymarch depth/progress variable.' },
+    { token: '$d$', label: '$d$: local step size / divisor term controlling march advance and intensity.' },
+    { token: '$s$', label: '$s$: scalar shaping term (typically shell/fold strength) used by the active sketch.' },
+    { token: '$q$', label: '$q$: secondary scalar derived from local geometry for weighting.' },
+    { token: '$\\ell$', label: '$\\ell$: signed distance-like scalar used for weighting near structure boundaries.' },
+  ];
+
+  return definitions.filter(({ token }) => equation.includes(token)).map(({ label }) => label);
+}
+
+function appendLegend(base: string, items: string[]): string {
+  const existing = new Set(base.split('\n').map((line) => line.trim()).filter(Boolean));
+  const additions = items.filter((item) => !existing.has(item));
+  return additions.length > 0 ? `${base}\n${additions.join('\n')}` : base;
+}
+
 export function getSketchAbout(id: string, sketch: Sketch): SketchAbout {
-  return (
+  const about =
     sketchAbout[id] ?? {
       intro: sketch.description,
+      equation: defaultAbout.equation,
+      symbols: defaultAbout.symbols,
       sections: defaultAbout.sections,
-    }
-  );
+    };
+
+  const legendItems = [...buildOperatorLegend(about.equation), ...buildVariableLegend(about.equation)];
+
+  return {
+    ...about,
+    symbols: appendLegend(about.symbols, legendItems),
+  };
 }
