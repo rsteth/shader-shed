@@ -188,12 +188,9 @@ export const sketches: Record<string, Sketch> = {
   },
   furnaceMire: {
     name: 'Furnace Mire',
-    description: 'Chaotic folded plasma with rounded-step harmonic diffusion',
+    description: 'Potential-flow furnace built from curl-advection and blackbody accumulation',
     sim: furnaceMire.sim,
     final: furnaceMire.final,
-    meta: {
-      attribution: 'Adapted from sketch by @XorDev',
-    },
   },
 };
 
