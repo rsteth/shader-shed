@@ -1,6 +1,6 @@
 /**
  * CHIAROSCURO BLOOM SKETCH
- * Light-vs-dark ink plumes with feedback-driven bloom.
+ * Energetic light-vs-shadow plumes with directional transfer and feedback bloom.
  */
 
 export const sim = /* glsl */ `
@@ -15,34 +15,45 @@ uniform float uDt;
 
 void main() {
     vec2 st = vUv;
-    vec2 pixel = 1.0 / uResolution;
+    vec2 px = 1.0 / uResolution;
     float t = uTime;
 
-    vec2 center = vec2(0.5);
+    vec2 center = mix(vec2(0.5), uMouse, 0.35);
     vec2 p = st - center;
-    float r = length(p);
-    float angle = atan(p.y, p.x);
 
-    float swirl = fbm(vec2(angle * 2.0, r * 8.0 - t * 0.35));
-    float folds = sin(11.0 * angle + 18.0 * r - t * 1.6 + swirl * 4.0);
-    float shadowMask = smoothstep(-0.2, 0.7, folds - r * 1.1);
+    vec2 warpA = vec2(
+        fbm(st * 3.8 + vec2(t * 0.18, -t * 0.11)),
+        fbm(st.yx * 4.6 + vec2(13.0, t * 0.14))
+    ) - 0.5;
 
-    vec2 curl = vec2(
-        fbm(st * 5.0 + vec2(0.0, t * 0.12)) - 0.5,
-        fbm(st.yx * 5.0 + vec2(17.0, -t * 0.1)) - 0.5
-    );
+    vec2 warpB = vec2(
+        fbm((st + warpA * 0.35) * 8.2 + vec2(29.0, -t * 0.24)),
+        fbm((st.yx - warpA * 0.28) * 7.4 + vec2(-11.0, t * 0.31))
+    ) - 0.5;
 
-    vec2 advectUv = st - curl * pixel * 14.0;
-    vec3 prev = texture(uPrevState, advectUv).rgb * (0.975 - 0.2 * uDt);
+    vec2 flow = normalize(warpA + warpB + vec2(1e-4));
+    float chaos = fbm((st + flow * 0.12) * 6.5 + vec2(t * 0.22, -t * 0.16));
 
-    float mouseBloom = smoothstep(0.18, 0.0, distance(st, uMouse));
+    float r = length(p + warpB * 0.25);
+    float veins = sin(19.0 * r - t * 1.7 + chaos * 9.0 + dot(flow, p) * 20.0);
+    float fracture = fbm((st + flow * 0.4) * 18.0 - t * 0.5) - 0.5;
 
-    vec3 paperWhite = vec3(0.96, 0.93, 0.88);
-    vec3 inkBlack = vec3(0.02, 0.02, 0.03);
-    vec3 palette = mix(inkBlack, paperWhite, shadowMask);
-    palette += mouseBloom * vec3(0.25, 0.18, 0.1);
+    float lightMask = smoothstep(-0.45, 0.72, veins + fracture * 2.2);
+    float transfer = smoothstep(0.2, 0.0, distance(st, uMouse));
 
-    vec3 color = mix(prev, palette, 0.09 + 0.16 * mouseBloom);
+    vec2 transport = (flow * (15.0 + chaos * 20.0) + warpB * 10.0) * px;
+    vec3 prev = texture(uPrevState, st - transport).rgb * (0.967 - 0.22 * uDt);
+
+    vec3 blackCore = vec3(0.01, 0.01, 0.015);
+    vec3 warmGlow = vec3(0.98, 0.93, 0.86);
+    vec3 electricEdge = vec3(1.0, 0.62, 0.35);
+
+    vec3 base = mix(blackCore, warmGlow, lightMask);
+    base += electricEdge * pow(max(veins, 0.0), 2.2) * (0.2 + 0.8 * transfer);
+
+    float injection = 0.06 + 0.22 * transfer + 0.1 * smoothstep(0.35, 0.8, chaos);
+    vec3 color = mix(prev, base, injection);
+
     fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
 `;
@@ -58,11 +69,11 @@ uniform float uOpacity;
 void main() {
     vec3 color = texture(uTexture, vUv).rgb;
 
-    float vignette = smoothstep(0.95, 0.18, distance(vUv, vec2(0.5)));
-    float pulse = 0.95 + 0.05 * sin(uTime * 0.4 + (vUv.x + vUv.y) * 4.0);
+    float vignette = smoothstep(1.0, 0.12, distance(vUv, vec2(0.5)));
+    float shimmer = 0.96 + 0.04 * sin((vUv.x - vUv.y) * 16.0 + uTime * 0.8);
 
-    color *= vignette * pulse;
-    color = pow(color, vec3(0.92));
+    color *= vignette * shimmer;
+    color = pow(color, vec3(0.91));
 
     fragColor = vec4(color, uOpacity);
 }

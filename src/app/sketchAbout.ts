@@ -411,47 +411,47 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom balances luminous paper-white highlights against velvety ink shadows, then smears both through gentle feedback advection.',
+      'Chiaroscuro Bloom now leans into irregular energy transfer: fractured light veins emerge from noise-warped flow and are advected as warm transmission trails.',
     equation:
       `$$\begin{aligned}
-\theta&=\operatorname{atan2}(y-0.5,x-0.5),\quad r=\lVert\mathbf{x}-0.5\rVert\\
-\sigma&=\operatorname{fbm}(2\theta,8r-0.35t),\quad f=\sin(11\theta+18r-1.6t+4\sigma)\\
-M&=\operatorname{smoothstep}(-0.2,0.7,f-1.1r),\quad S_{t+1}=\operatorname{mix}(0.975S_t(\mathbf{x}-14\mathbf{c}\odot\mathbf{p}),\,\operatorname{mix}(c_{ink},c_{paper},M),\,\alpha)
+\mathbf{w}_1&=(\operatorname{fbm}(3.8\mathbf{x}+(0.18t,-0.11t)),\operatorname{fbm}(4.6\mathbf{x}_{yx}+(13,0.14t)))-0.5\\
+\mathbf{w}_2&=(\operatorname{fbm}(8.2(\mathbf{x}+0.35\mathbf{w}_1)+(29,-0.24t)),\operatorname{fbm}(7.4(\mathbf{x}_{yx}-0.28\mathbf{w}_1)+(-11,0.31t)))-0.5\\
+S_{t+1}&=\operatorname{mix}(0.967S_t(\mathbf{x}-[(15+20\chi)\hat{\mathbf{f}}+10\mathbf{w}_2]\odot\mathbf{p}),\,\operatorname{mix}(c_{dark},c_{light},M)+c_e\max(v,0)^{2.2},\,\alpha)
 \end{aligned}$$`,
     symbols:
-      `$\mathbf{c}$ is a two-channel curl-like noise field from fbm differences.
-$\alpha=0.09+0.16\,g_m$ and $g_m=\operatorname{smoothstep}(0.18,0,\lVert\mathbf{x}-uMouse\rVert)$.`,
+      `$\hat{\mathbf{f}}=\operatorname{normalize}(\mathbf{w}_1+\mathbf{w}_2)$ and $\chi=\operatorname{fbm}(6.5(\mathbf{x}+0.12\hat{\mathbf{f}})+(0.22t,-0.16t))$.
+$M=\operatorname{smoothstep}(-0.45,0.72,v+2.2f)$ and $\alpha=0.06+0.22g_m+0.1\operatorname{smoothstep}(0.35,0.8,\chi)$.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'A composition mask partitions space into dark and light lobes; feedback advection then drags those lobes into painterly bloom trails.',
+        body: 'Two nested noise warps generate directional flow; bright fragments are injected into that flow and carried downstream, so composition feels transmitted rather than merely oscillated.',
       },
       {
         heading: 'Key variables',
-        body: 'Angular frequency (11), radial gain (18), and advection distance (14 pixels) are the most perceptible controls for detail density and motion feel.',
+        body: 'Transport gain $(15+20\chi)$, high-frequency fracture weighting $(2.2)$, and injection factor $\alpha$ are the strongest controls over chaos, continuity, and flare intensity.',
       },
     ],
   },
   eclipseWeave: {
     intro:
-      'Eclipse Weave builds a moving umbra around the cursor, then threads emissive corona rings and crossed wave lattices around that core.',
+      'Eclipse Weave is reworked into a less regular transfer field: the umbra bends with turbulent drift while filaments burst and hand off light across space.',
     equation:
       `$$\begin{aligned}
-\mathbf{p}&=\mathbf{x}-\operatorname{mix}(0.5,\,uMouse,\,0.6),\quad r=\lVert\mathbf{p}\rVert\\
-E&=\operatorname{smoothstep}(0.24,0.04,r),\quad C=\operatorname{smoothstep}(0.18,0.45,r)\operatorname{smoothstep}(0.65,0.3,r)\\
-L&=\max(\sin(35r-2.2t),0)\,C\,(0.85,0.35,0.95)+\max(\sin(22(p_x+p_y)+0.8t)\cos(19(p_x-p_y)-0.7t),0)(1-E)\,(0.2,0.45,1.0)
+\mathbf{d}&=(\operatorname{fbm}(2.7\mathbf{x}+(0.1t,-0.18t)),\operatorname{fbm}(3.4\mathbf{x}_{yx}+(7,0.14t)))-0.5\\
+\mathbf{c}&=(\operatorname{fbm}(6.2(\mathbf{x}+0.35\mathbf{d})+(21,-0.31t)),\operatorname{fbm}(5.8(\mathbf{x}_{yx}-0.25\mathbf{d})+(-16,0.27t)))-0.5\\
+S_{t+1}&=\operatorname{mix}(0.964S_t(\mathbf{x}-[(20+16F)\hat{\mathbf{q}}+12\mathbf{c}]\odot\mathbf{p}),\,\mathbf{L}_{corona}+\mathbf{L}_{filament}+\mathbf{L}_{umbra},\,\beta)
 \end{aligned}$$`,
     symbols:
-      `$E$: eclipse mask (dark core), $C$: corona window.
-Feedback sample offset is $12\,\mathbf{p}_{ix}$-scaled by woven phase fields.`,
+      `$F=\operatorname{smoothstep}(0.25,1.15,b_1+b_2+2.4b_3)$ is filament occupancy.
+$\beta=0.07+0.2F+0.18g_m$, with $g_m=\operatorname{smoothstep}(0.35,0,\lVert\mathbf{x}-uMouse\rVert)$ driving local transfer gain.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'The shader composes concentric structure (rings) with directional interference (weave) so foreground darkness and background emission stay in tension.',
+        body: 'Instead of static rings, turbulent vectors bend the eclipse shell and route energy into intermittent filaments, producing pulses that appear to jump from one region to another.',
       },
       {
         heading: 'Key variables',
-        body: 'Ring frequency, corona radius window, and cursor-follow blend (0.6) strongly alter perceived orbit size and eclipse drama.',
+        body: 'Filament threshold band $(0.25,1.15)$, carry gain $(20+16F)$, and cursor transfer term $0.18g_m$ govern burstiness, path length, and interactive handoff strength.',
       },
     ],
   },

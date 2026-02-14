@@ -1,6 +1,6 @@
 /**
  * ECLIPSE WEAVE SKETCH
- * Interlaced rings of shadow and emission around a moving umbra.
+ * Chaotic umbral transfer field with splintered corona filaments.
  */
 
 export const sim = /* glsl */ `
@@ -15,27 +15,46 @@ uniform float uDt;
 
 void main() {
     vec2 st = vUv;
-    vec2 pixel = 1.0 / uResolution;
+    vec2 px = 1.0 / uResolution;
     float t = uTime;
 
-    vec2 focus = mix(vec2(0.5), uMouse, 0.6);
-    vec2 p = st - focus;
-    float r = length(p) + 1e-4;
+    vec2 attractor = mix(vec2(0.5), uMouse, 0.72);
+    vec2 p = st - attractor;
 
-    float rings = sin(35.0 * r - t * 2.2);
-    float weaveA = sin((p.x + p.y) * 22.0 + t * 0.8);
-    float weaveB = cos((p.x - p.y) * 19.0 - t * 0.7);
-    float corona = smoothstep(0.18, 0.45, r) * smoothstep(0.65, 0.3, r);
+    vec2 domain = vec2(
+        fbm(st * 2.7 + vec2(t * 0.1, -t * 0.18)),
+        fbm(st.yx * 3.4 + vec2(7.0, t * 0.14))
+    ) - 0.5;
 
-    float eclipse = smoothstep(0.24, 0.04, r);
-    vec3 emission = vec3(0.85, 0.35, 0.95) * max(rings, 0.0) * corona;
-    emission += vec3(0.2, 0.45, 1.0) * max(weaveA * weaveB, 0.0) * (1.0 - eclipse);
+    vec2 current = vec2(
+        fbm((st + domain * 0.35) * 6.2 + vec2(21.0, -t * 0.31)),
+        fbm((st.yx - domain * 0.25) * 5.8 + vec2(-16.0, t * 0.27))
+    ) - 0.5;
 
-    vec2 drift = vec2(weaveA, weaveB) * pixel * 12.0;
-    vec3 prev = texture(uPrevState, st - drift).rgb * (0.972 - 0.15 * uDt);
+    vec2 drift = normalize(domain + current + vec2(1e-4));
+    float r = length(p + current * 0.28) + 1e-4;
 
-    vec3 shadowCore = vec3(0.005, 0.006, 0.01) * eclipse;
-    vec3 color = mix(prev, emission + shadowCore, 0.1 + 0.18 * corona);
+    float umbra = smoothstep(0.26, 0.02, r + dot(drift, p) * 0.25);
+    float shell = smoothstep(0.12, 0.62, r) * smoothstep(0.88, 0.25, r);
+
+    float burstA = sin(42.0 * r - t * 2.7 + current.x * 16.0);
+    float burstB = sin(dot(p + current * 0.3, normalize(vec2(0.74, -0.53))) * 36.0 + t * 1.9);
+    float burstC = fbm((st + drift * 0.3) * 14.0 - t * 0.42) - 0.45;
+
+    float filaments = smoothstep(0.25, 1.15, burstA + burstB + burstC * 2.4);
+
+    vec3 corona = vec3(0.9, 0.4, 1.0) * pow(max(burstA, 0.0), 1.8) * shell;
+    corona += vec3(0.2, 0.7, 1.0) * filaments * (1.0 - umbra) * (0.3 + shell);
+
+    float transfer = smoothstep(0.35, 0.0, distance(st, uMouse));
+    vec2 carry = (drift * (20.0 + 16.0 * filaments) + current * 12.0) * px;
+    vec3 prev = texture(uPrevState, st - carry).rgb * (0.964 - 0.2 * uDt);
+
+    vec3 sink = vec3(0.004, 0.005, 0.009) * (umbra + transfer * 0.35);
+    vec3 inject = corona + sink;
+
+    float gain = 0.07 + 0.2 * filaments + 0.18 * transfer;
+    vec3 color = mix(prev, inject, gain);
 
     fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
@@ -52,10 +71,12 @@ uniform float uTime;
 void main() {
     vec3 color = texture(uTexture, vUv).rgb;
 
-    float grain = fract(sin(dot(vUv + uTime * 0.001, vec2(12.9898, 78.233))) * 43758.5453);
-    color += (grain - 0.5) * 0.02;
+    float grain = fract(sin(dot(vUv * (1.0 + 0.04 * sin(uTime * 0.2)), vec2(12.9898, 78.233))) * 43758.5453);
+    color += (grain - 0.5) * 0.018;
 
-    color = clamp(color, 0.0, 1.0);
-    fragColor = vec4(color, uOpacity);
+    float gate = 0.96 + 0.04 * sin((vUv.x + vUv.y) * 42.0 - uTime * 1.2);
+    color *= gate;
+
+    fragColor = vec4(clamp(color, 0.0, 1.0), uOpacity);
 }
 `;
