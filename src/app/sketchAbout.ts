@@ -411,47 +411,47 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom now leans into irregular energy transfer: fractured light veins emerge from noise-warped flow and are advected as warm transmission trails.',
+      'Chiaroscuro Bloom is reimagined as a quasar: sparse space feeds into a bright central choke point, then ejects along opposed relativistic-looking jets.',
     equation:
       `$$\begin{aligned}
-\mathbf{w}_1&=(\operatorname{fbm}(3.8\mathbf{x}+(0.18t,-0.11t)),\operatorname{fbm}(4.6\mathbf{x}_{yx}+(13,0.14t)))-0.5\\
-\mathbf{w}_2&=(\operatorname{fbm}(8.2(\mathbf{x}+0.35\mathbf{w}_1)+(29,-0.24t)),\operatorname{fbm}(7.4(\mathbf{x}_{yx}-0.28\mathbf{w}_1)+(-11,0.31t)))-0.5\\
-S_{t+1}&=\operatorname{mix}(0.967S_t(\mathbf{x}-[(15+20\chi)\hat{\mathbf{f}}+10\mathbf{w}_2]\odot\mathbf{p}),\,\operatorname{mix}(c_{dark},c_{light},M)+c_e\max(v,0)^{2.2},\,\alpha)
+\mathbf{p}&=((\mathbf{x}-\mathbf{c})\odot(a,1)),\quad r=\lVert\mathbf{p}\rVert,\quad \hat{\mathbf{i}}=-\mathbf{p}/r\\
+\mathbf{f}&=\operatorname{normalize}((1.35+0.85\eta)\hat{\mathbf{i}}+(0.5+0.6\sin(t+22r))\hat{\mathbf{i}}^{\perp}),\quad \eta=\operatorname{fbm}(7.5\mathbf{x}+(0.16t,-0.13t))\\
+S_{t+1}&=\operatorname{mix}(0.964S_t(\mathbf{x}-[22+20C+12J]\mathbf{f}\odot\mathbf{p}_{ix}),\,C\,c_{core}+A\,c_{ring}+J\,c_{jet},\,\alpha)
 \end{aligned}$$`,
     symbols:
-      `$\hat{\mathbf{f}}=\operatorname{normalize}(\mathbf{w}_1+\mathbf{w}_2)$ and $\chi=\operatorname{fbm}(6.5(\mathbf{x}+0.12\hat{\mathbf{f}})+(0.22t,-0.16t))$.
-$M=\operatorname{smoothstep}(-0.45,0.72,v+2.2f)$ and $\alpha=0.06+0.22g_m+0.1\operatorname{smoothstep}(0.35,0.8,\chi)$.`,
+      `$C=e^{-26r}$ is the central choke-point intensity; $A$ is the accretion-ring shell term near $r\approx0.09$.
+$J=e^{-38|p_y|}\,\operatorname{smoothstep}(0.06,0.9,|p_x|)$ is the bipolar jet envelope and $\alpha=0.035+0.42C+0.28J+0.15g_m$.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'Two nested noise warps generate directional flow; bright fragments are injected into that flow and carried downstream, so composition feels transmitted rather than merely oscillated.',
+        body: 'Inward spiral advection collapses signal into the center, where luminosity concentrates and is then expelled laterally as pulsed jet structure; outside this region, space is intentionally near-black.',
       },
       {
         heading: 'Key variables',
-        body: 'Transport gain $(15+20\chi)$, high-frequency fracture weighting $(2.2)$, and injection factor $\alpha$ are the strongest controls over chaos, continuity, and flare intensity.',
+        body: 'Core falloff (26), jet confinement (38), and carry gain $(22+20C+12J)$ are the most visible controls for collapse strength, jet sharpness, and propagation speed.',
       },
     ],
   },
   eclipseWeave: {
     intro:
-      'Eclipse Weave is reworked into a less regular transfer field: the umbra bends with turbulent drift while filaments burst and hand off light across space.',
+      'Eclipse Weave now places the viewer between two receding planes: an earthy floor and a luminous sky ceiling, both fading into atmospheric haze at depth.',
     equation:
       `$$\begin{aligned}
-\mathbf{d}&=(\operatorname{fbm}(2.7\mathbf{x}+(0.1t,-0.18t)),\operatorname{fbm}(3.4\mathbf{x}_{yx}+(7,0.14t)))-0.5\\
-\mathbf{c}&=(\operatorname{fbm}(6.2(\mathbf{x}+0.35\mathbf{d})+(21,-0.31t)),\operatorname{fbm}(5.8(\mathbf{x}_{yx}-0.25\mathbf{d})+(-16,0.27t)))-0.5\\
-S_{t+1}&=\operatorname{mix}(0.964S_t(\mathbf{x}-[(20+16F)\hat{\mathbf{q}}+12\mathbf{c}]\odot\mathbf{p}),\,\mathbf{L}_{corona}+\mathbf{L}_{filament}+\mathbf{L}_{umbra},\,\beta)
+\delta&=y-h,\quad z=\frac{1}{|\delta|+0.035},\quad \mathbf{w}=((x-0.5)z,\,z+0.45t)\\
+\mathbf{d}&=(\operatorname{fbm}(0.18\mathbf{w}+(0,0.08t)),\operatorname{fbm}(0.21\mathbf{w}_{yx}+(12,-0.07t)))-0.5\\
+S_{t+1}&=\operatorname{mix}(0.972S_t(\mathbf{x}-\mathbf{u}_{flow}),\,\operatorname{mix}(C_{plane},C_{fog},\operatorname{smoothstep}(2,18,z)),\,\beta)
 \end{aligned}$$`,
     symbols:
-      `$F=\operatorname{smoothstep}(0.25,1.15,b_1+b_2+2.4b_3)$ is filament occupancy.
-$\beta=0.07+0.2F+0.18g_m$, with $g_m=\operatorname{smoothstep}(0.35,0,\lVert\mathbf{x}-uMouse\rVert)$ driving local transfer gain.`,
+      `$h=0.5+0.08(uMouse_y-0.5)$ is horizon height; $\delta<0$ selects floor treatment and $\delta>0$ selects ceiling treatment.
+$C_{plane}$ blends either floor-grid/ridge shading or sky-band/cloud shading; depth $z$ increases haze through $C_{fog}$.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'Instead of static rings, turbulent vectors bend the eclipse shell and route energy into intermittent filaments, producing pulses that appear to jump from one region to another.',
+        body: 'A perspective-style depth map is built from distance to horizon, then used to sample separate procedural worlds for ground and sky. Both worlds are gradually obscured by fog as they recede.',
       },
       {
         heading: 'Key variables',
-        body: 'Filament threshold band $(0.25,1.15)$, carry gain $(20+16F)$, and cursor transfer term $0.18g_m$ govern burstiness, path length, and interactive handoff strength.',
+        body: 'Horizon offset gain $(0.08)$, depth denominator bias $(0.035)$, and haze window $(2,18)$ most strongly control camera feel, vanishing-point compression, and atmospheric distance.',
       },
     ],
   },

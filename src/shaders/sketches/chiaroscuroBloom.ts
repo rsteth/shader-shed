@@ -1,6 +1,6 @@
 /**
  * CHIAROSCURO BLOOM SKETCH
- * Energetic light-vs-shadow plumes with directional transfer and feedback bloom.
+ * Quasar-style choke point: sparse space pulls into center, then erupts as jets.
  */
 
 export const sim = /* glsl */ `
@@ -18,41 +18,47 @@ void main() {
     vec2 px = 1.0 / uResolution;
     float t = uTime;
 
-    vec2 center = mix(vec2(0.5), uMouse, 0.35);
-    vec2 p = st - center;
+    vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+    vec2 center = vec2(0.5) + (uMouse - 0.5) * vec2(0.12, 0.12);
+    vec2 p = (st - center) * aspect;
 
-    vec2 warpA = vec2(
-        fbm(st * 3.8 + vec2(t * 0.18, -t * 0.11)),
-        fbm(st.yx * 4.6 + vec2(13.0, t * 0.14))
-    ) - 0.5;
+    float r = length(p) + 1e-4;
+    vec2 inward = -p / r;
+    vec2 tangent = vec2(-inward.y, inward.x);
 
-    vec2 warpB = vec2(
-        fbm((st + warpA * 0.35) * 8.2 + vec2(29.0, -t * 0.24)),
-        fbm((st.yx - warpA * 0.28) * 7.4 + vec2(-11.0, t * 0.31))
-    ) - 0.5;
+    float spiral = fbm(st * 7.5 + vec2(t * 0.16, -t * 0.13));
+    vec2 flow = normalize(inward * (1.35 + 0.85 * spiral) + tangent * (0.5 + 0.6 * sin(t + r * 22.0)) + vec2(1e-4));
 
-    vec2 flow = normalize(warpA + warpB + vec2(1e-4));
-    float chaos = fbm((st + flow * 0.12) * 6.5 + vec2(t * 0.22, -t * 0.16));
+    // Mostly empty space away from the core
+    float emptiness = smoothstep(0.22, 0.92, r);
 
-    float r = length(p + warpB * 0.25);
-    float veins = sin(19.0 * r - t * 1.7 + chaos * 9.0 + dot(flow, p) * 20.0);
-    float fracture = fbm((st + flow * 0.4) * 18.0 - t * 0.5) - 0.5;
+    // Chokepoint core
+    float core = exp(-r * 26.0);
+    float accretion = exp(-pow((r - 0.09) * 22.0, 2.0)) * (0.6 + 0.4 * sin(28.0 * atan(p.y, p.x) + t * 3.4));
 
-    float lightMask = smoothstep(-0.45, 0.72, veins + fracture * 2.2);
-    float transfer = smoothstep(0.2, 0.0, distance(st, uMouse));
+    // Opposing quasar jets along X axis
+    float jetAxis = exp(-abs(p.y) * 38.0);
+    float jetReach = smoothstep(0.06, 0.9, abs(p.x));
+    float jetPulse = 0.55 + 0.45 * sin(abs(p.x) * 18.0 - t * 4.2 + spiral * 8.0);
+    float jets = jetAxis * jetReach * jetPulse;
 
-    vec2 transport = (flow * (15.0 + chaos * 20.0) + warpB * 10.0) * px;
-    vec3 prev = texture(uPrevState, st - transport).rgb * (0.967 - 0.22 * uDt);
+    vec2 carry = flow * px * (22.0 + 20.0 * core + 12.0 * jets);
+    vec3 prev = texture(uPrevState, st - carry).rgb * (0.964 - 0.18 * uDt);
 
-    vec3 blackCore = vec3(0.01, 0.01, 0.015);
-    vec3 warmGlow = vec3(0.98, 0.93, 0.86);
-    vec3 electricEdge = vec3(1.0, 0.62, 0.35);
+    vec3 space = vec3(0.0);
+    vec3 coreCol = vec3(1.0, 0.94, 0.78) * core;
+    vec3 ringCol = vec3(1.0, 0.62, 0.28) * max(accretion, 0.0);
+    vec3 jetCol = vec3(0.55, 0.78, 1.0) * jets;
 
-    vec3 base = mix(blackCore, warmGlow, lightMask);
-    base += electricEdge * pow(max(veins, 0.0), 2.2) * (0.2 + 0.8 * transfer);
+    vec3 source = space;
+    source += coreCol;
+    source += ringCol;
+    source += jetCol;
+    source *= (1.0 - 0.92 * emptiness);
 
-    float injection = 0.06 + 0.22 * transfer + 0.1 * smoothstep(0.35, 0.8, chaos);
-    vec3 color = mix(prev, base, injection);
+    float transfer = smoothstep(0.26, 0.0, distance(st, uMouse));
+    float inject = 0.035 + 0.42 * core + 0.28 * jets + 0.15 * transfer;
+    vec3 color = mix(prev, source, clamp(inject, 0.0, 1.0));
 
     fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
@@ -69,12 +75,13 @@ uniform float uOpacity;
 void main() {
     vec3 color = texture(uTexture, vUv).rgb;
 
-    float vignette = smoothstep(1.0, 0.12, distance(vUv, vec2(0.5)));
-    float shimmer = 0.96 + 0.04 * sin((vUv.x - vUv.y) * 16.0 + uTime * 0.8);
+    float r = distance(vUv, vec2(0.5));
+    float vignette = smoothstep(1.0, 0.08, r);
+    float flare = 0.97 + 0.03 * sin((vUv.x - 0.5) * 120.0 + uTime * 3.5) * exp(-abs(vUv.y - 0.5) * 18.0);
 
-    color *= vignette * shimmer;
-    color = pow(color, vec3(0.91));
+    color *= vignette * flare;
+    color = pow(color, vec3(0.9));
 
-    fragColor = vec4(color, uOpacity);
+    fragColor = vec4(clamp(color, 0.0, 1.0), uOpacity);
 }
 `;

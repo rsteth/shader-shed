@@ -1,6 +1,6 @@
 /**
  * ECLIPSE WEAVE SKETCH
- * Chaotic umbral transfer field with splintered corona filaments.
+ * Earth/sky corridor with distinct floor and ceiling planes fading into atmospheric haze.
  */
 
 export const sim = /* glsl */ `
@@ -18,43 +18,50 @@ void main() {
     vec2 px = 1.0 / uResolution;
     float t = uTime;
 
-    vec2 attractor = mix(vec2(0.5), uMouse, 0.72);
-    vec2 p = st - attractor;
+    float horizon = 0.5 + (uMouse.y - 0.5) * 0.08;
+    float signedHeight = st.y - horizon;
+    float planeSel = step(0.0, signedHeight); // 0=floor, 1=ceiling
 
-    vec2 domain = vec2(
-        fbm(st * 2.7 + vec2(t * 0.1, -t * 0.18)),
-        fbm(st.yx * 3.4 + vec2(7.0, t * 0.14))
+    float depth = 1.0 / (abs(signedHeight) + 0.035);
+    depth = clamp(depth, 0.0, 26.0);
+
+    vec2 world = vec2((st.x - 0.5) * depth, depth + t * 0.45);
+
+    vec2 drift = vec2(
+        fbm(world * vec2(0.18, 0.12) + vec2(0.0, t * 0.08)),
+        fbm(world.yx * vec2(0.12, 0.21) + vec2(12.0, -t * 0.07))
     ) - 0.5;
 
-    vec2 current = vec2(
-        fbm((st + domain * 0.35) * 6.2 + vec2(21.0, -t * 0.31)),
-        fbm((st.yx - domain * 0.25) * 5.8 + vec2(-16.0, t * 0.27))
-    ) - 0.5;
+    vec2 weaveWorld = world + drift * 2.6;
 
-    vec2 drift = normalize(domain + current + vec2(1e-4));
-    float r = length(p + current * 0.28) + 1e-4;
+    float floorGrid = sin(weaveWorld.x * 1.7 + t * 0.4) * sin(weaveWorld.y * 0.34 - t * 0.7);
+    float floorRidges = fbm(weaveWorld * vec2(0.45, 0.25) + vec2(3.0, 0.0));
 
-    float umbra = smoothstep(0.26, 0.02, r + dot(drift, p) * 0.25);
-    float shell = smoothstep(0.12, 0.62, r) * smoothstep(0.88, 0.25, r);
+    float skyBands = sin(weaveWorld.x * 1.15 - t * 0.22 + fbm(weaveWorld * 0.17) * 3.0);
+    float skyCloud = fbm(weaveWorld * vec2(0.22, 0.18) - vec2(9.0, t * 0.05));
 
-    float burstA = sin(42.0 * r - t * 2.7 + current.x * 16.0);
-    float burstB = sin(dot(p + current * 0.3, normalize(vec2(0.74, -0.53))) * 36.0 + t * 1.9);
-    float burstC = fbm((st + drift * 0.3) * 14.0 - t * 0.42) - 0.45;
+    vec3 floorCol = mix(vec3(0.06, 0.08, 0.12), vec3(0.45, 0.33, 0.22), floorRidges);
+    floorCol += vec3(0.2, 0.16, 0.12) * smoothstep(0.2, 0.9, floorGrid * 0.5 + 0.5);
 
-    float filaments = smoothstep(0.25, 1.15, burstA + burstB + burstC * 2.4);
+    vec3 skyCol = mix(vec3(0.03, 0.07, 0.16), vec3(0.35, 0.6, 0.95), skyCloud);
+    skyCol += vec3(0.35, 0.5, 0.8) * smoothstep(0.4, 0.95, skyBands * 0.5 + 0.5);
 
-    vec3 corona = vec3(0.9, 0.4, 1.0) * pow(max(burstA, 0.0), 1.8) * shell;
-    corona += vec3(0.2, 0.7, 1.0) * filaments * (1.0 - umbra) * (0.3 + shell);
+    vec3 planeColor = mix(floorCol, skyCol, planeSel);
 
-    float transfer = smoothstep(0.35, 0.0, distance(st, uMouse));
-    vec2 carry = (drift * (20.0 + 16.0 * filaments) + current * 12.0) * px;
-    vec3 prev = texture(uPrevState, st - carry).rgb * (0.964 - 0.2 * uDt);
+    float haze = smoothstep(2.0, 18.0, depth);
+    vec3 fogCol = mix(vec3(0.22, 0.2, 0.18), vec3(0.62, 0.68, 0.76), planeSel);
+    planeColor = mix(planeColor, fogCol, haze * 0.82);
 
-    vec3 sink = vec3(0.004, 0.005, 0.009) * (umbra + transfer * 0.35);
-    vec3 inject = corona + sink;
+    float horizonGlow = exp(-abs(signedHeight) * 55.0);
+    planeColor += vec3(0.35, 0.32, 0.28) * horizonGlow * (1.0 - 0.45 * planeSel);
 
-    float gain = 0.07 + 0.2 * filaments + 0.18 * transfer;
-    vec3 color = mix(prev, inject, gain);
+    vec2 flow = vec2(drift.y, -drift.x);
+    vec2 carry = flow * px * (8.0 + depth * 0.6);
+    vec3 prev = texture(uPrevState, st - carry).rgb * (0.972 - 0.16 * uDt);
+
+    float transfer = smoothstep(0.28, 0.0, distance(st, uMouse));
+    float inject = 0.07 + 0.11 * transfer + 0.08 * smoothstep(4.0, 16.0, depth);
+    vec3 color = mix(prev, planeColor, inject);
 
     fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
@@ -71,11 +78,11 @@ uniform float uTime;
 void main() {
     vec3 color = texture(uTexture, vUv).rgb;
 
-    float grain = fract(sin(dot(vUv * (1.0 + 0.04 * sin(uTime * 0.2)), vec2(12.9898, 78.233))) * 43758.5453);
-    color += (grain - 0.5) * 0.018;
+    float grain = fract(sin(dot(vUv + uTime * 0.001, vec2(12.9898, 78.233))) * 43758.5453);
+    color += (grain - 0.5) * 0.012;
 
-    float gate = 0.96 + 0.04 * sin((vUv.x + vUv.y) * 42.0 - uTime * 1.2);
-    color *= gate;
+    float vignette = smoothstep(0.98, 0.16, distance(vUv, vec2(0.5, 0.53)));
+    color *= vignette;
 
     fragColor = vec4(clamp(color, 0.0, 1.0), uOpacity);
 }
