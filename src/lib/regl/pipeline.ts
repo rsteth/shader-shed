@@ -201,7 +201,6 @@ export class MultipassSystem {
         uAtlasGrid: () => this.asciiAtlasGrid,
         uGlyphCount: () => this.asciiGlyphCount,
       },
-      framebuffer: null,
       depth: { enable: false },
     });
   }
