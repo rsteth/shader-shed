@@ -411,11 +411,11 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom now drives current in the same diagonal direction as the energy beam, with anisotropic stretching so motion trails read elongated along travel rather than crosswise through the core.',
+      'Chiaroscuro Bloom now drives current in the same diagonal direction as the energy beam, with extreme anisotropic stretching so flow resolves into long thread-like filaments along travel instead of crosswise swirls through the core.',
     equation:
       `$$\begin{aligned}
 \mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad (s,q)= (\langle\mathbf{p},\hat{\mathbf{d}}\rangle,\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle)\\
-(s',q')&=(0.62s,1.35q),\quad \pi=e^{-7.8r}\operatorname{smoothstep}(0.74,-0.1,s),\quad q_p=(1-0.9\pi)q\\
+(s',q')&=(0.42s,2.25q),\quad \pi=e^{-7.8r}\operatorname{smoothstep}(0.74,-0.1,s),\quad q_p=(1-0.9\pi)q\\
 S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.7B(s',q')\,c_{beam}+T(s',q')\,c_{tooth}+P(s',q')\,c_{particle},\,\alpha)
 \end{aligned}$$`,
     symbols:
@@ -424,11 +424,11 @@ $T$ is the stepped harmonic teeth term in stretched space, and $q_p$ is the pinc
     sections: [
       {
         heading: 'What is happening',
-        body: 'Flow is now intentionally beam-aligned: gas pinches inward, then rides the same diagonal rail as the outflow. The anisotropic remap makes features feel stretched and accelerated along that path.',
+        body: 'Flow is now intentionally beam-aligned: gas pinches inward, then rides the same diagonal rail as the outflow. The stronger anisotropic remap stretches structures into thread-like filaments that whip forward along the beam.',
       },
       {
         heading: 'Key variables',
-        body: 'Stretch factors $(0.62,1.35)$, pinch gain $(0.9)$, beam confinement (30 in stretched space), and teeth quantization scales (34, 96) set the balance between smooth rail flow and jagged high-energy bite.',
+        body: 'Stretch factors $(0.42,2.25)$, pinch gain $(0.9)$, beam confinement (54 in stretched space), and teeth quantization scales (34, 138) set the balance between hairline threads and chunkier energetic ribbons.',
       },
     ],
   },
