@@ -2,6 +2,11 @@
 const basePath = process.env.BASE_PATH ?? '';
 
 const nextConfig = {
+  // Disabled: Strict Mode double-mounts components in dev, which destroys and
+  // recreates the WebGL context on the same canvas. regl cannot reliably
+  // reinitialise GPU resources (FBOs, textures) on a context that was just torn
+  // down, causing the ASCII post-process pipeline to render black.
+  reactStrictMode: false,
   output: 'export',
   trailingSlash: true,
   basePath,

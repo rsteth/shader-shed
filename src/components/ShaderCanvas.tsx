@@ -141,8 +141,12 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
     handleResize();
 
     // 5. Render Loop
+    let disposed = false;
     let lastTime = performance.now();
+    let currentRafId = 0;
     const loop = () => {
+        if (disposed) return;
+
         const now = performance.now();
         const dt = (now - lastTime) / 1000;
         lastTime = now;
@@ -152,10 +156,10 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
         _regl.clear({ color: [0, 0, 0, 0], depth: 1 });
         pipeline.render();
 
-        systemRef.current!.rafId = requestAnimationFrame(loop);
+        currentRafId = requestAnimationFrame(loop);
     };
 
-    const rafId = requestAnimationFrame(loop);
+    currentRafId = requestAnimationFrame(loop);
 
     // Store refs
     systemRef.current = {
@@ -163,7 +167,7 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
         uniforms,
         pipeline,
         caps,
-        rafId,
+        rafId: currentRafId,
         observer
     };
 
@@ -171,16 +175,17 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
 
     return () => {
         // Cleanup
-        if (systemRef.current) {
-            cancelAnimationFrame(systemRef.current.rafId);
-            systemRef.current.observer.disconnect();
-            systemRef.current.pipeline.dispose();
-            systemRef.current.regl.destroy();
+        disposed = true;
+        cancelAnimationFrame(currentRafId);
+        observer.disconnect();
+        pipeline.dispose();
+        _regl.destroy();
 
-            if (mode !== 'contained') {
-                window.removeEventListener('mousemove', handleMouseMove);
-            }
+        if (mode !== 'contained') {
+            window.removeEventListener('mousemove', handleMouseMove);
         }
+
+        systemRef.current = null;
     };
   }, []);
 
