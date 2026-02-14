@@ -36,6 +36,7 @@ import * as axialChoir from './axialChoir';
 import * as prismTangle from './prismTangle';
 import * as noctilucentArc from './noctilucentArc';
 import * as furnaceMire from './furnaceMire';
+import * as processingBloom from './processingBloom';
 
 export interface Sketch {
   name: string;
@@ -158,6 +159,13 @@ export const sketches: Record<string, Sketch> = {
     description: 'Chaotic folded plasma with rounded-step harmonic diffusion',
     sim: furnaceMire.sim,
     final: furnaceMire.final,
+  },
+  processingBloom: {
+    name: 'Processing Bloom',
+    description: 'Shader adaptation of a dense Processing point cloud orbit',
+    sim: processingBloom.sim,
+    final: processingBloom.final,
+    includeInSlideshow: false,
   },
 };
 
