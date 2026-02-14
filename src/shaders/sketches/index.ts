@@ -36,6 +36,10 @@ import * as axialChoir from './axialChoir';
 import * as prismTangle from './prismTangle';
 import * as noctilucentArc from './noctilucentArc';
 import * as furnaceMire from './furnaceMire';
+import * as chiaroscuroBloom from './chiaroscuroBloom';
+import * as eclipseWeave from './eclipseWeave';
+import * as umbraDrift from './umbraDrift';
+import * as lumenGlyphs from './lumenGlyphs';
 
 export interface Sketch {
   name: string;
@@ -194,6 +198,30 @@ export const sketches: Record<string, Sketch> = {
     meta: {
       attribution: 'Adapted from sketch by @XorDev',
     },
+  },
+  chiaroscuroBloom: {
+    name: 'Chiaroscuro Bloom',
+    description: 'Ink-like light and shadow plumes with reactive bloom',
+    sim: chiaroscuroBloom.sim,
+    final: chiaroscuroBloom.final,
+  },
+  eclipseWeave: {
+    name: 'Eclipse Weave',
+    description: 'Interlaced corona rings and umbral cores orbiting the cursor',
+    sim: eclipseWeave.sim,
+    final: eclipseWeave.final,
+  },
+  umbraDrift: {
+    name: 'Umbra Drift',
+    description: 'Foggy advection field where darkness carves flowing channels',
+    sim: umbraDrift.sim,
+    final: umbraDrift.final,
+  },
+  lumenGlyphs: {
+    name: 'Lumen Glyphs',
+    description: 'Thresholded harmonic glyphs suspended in neon turbulence',
+    sim: lumenGlyphs.sim,
+    final: lumenGlyphs.final,
   },
 };
 
