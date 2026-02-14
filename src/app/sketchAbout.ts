@@ -411,24 +411,24 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom is reimagined as a quasar: sparse space feeds into a bright central choke point, then ejects along opposed relativistic-looking jets.',
+      'Chiaroscuro Bloom is now a diagonal quasar scene: a nebulous lower-left gas field is pulled into a central singularity, then expelled as a bright beam toward the upper-right.',
     equation:
       `$$\begin{aligned}
-\mathbf{p}&=((\mathbf{x}-\mathbf{c})\odot(a,1)),\quad r=\lVert\mathbf{p}\rVert,\quad \hat{\mathbf{i}}=-\mathbf{p}/r\\
-\mathbf{f}&=\operatorname{normalize}((1.35+0.85\eta)\hat{\mathbf{i}}+(0.5+0.6\sin(t+22r))\hat{\mathbf{i}}^{\perp}),\quad \eta=\operatorname{fbm}(7.5\mathbf{x}+(0.16t,-0.13t))\\
-S_{t+1}&=\operatorname{mix}(0.964S_t(\mathbf{x}-[22+20C+12J]\mathbf{f}\odot\mathbf{p}_{ix}),\,C\,c_{core}+A\,c_{ring}+J\,c_{jet},\,\alpha)
+\mathbf{p}&=((\mathbf{x}-\mathbf{c})\odot(a,1)),\quad s=\langle\mathbf{p},\hat{\mathbf{d}}\rangle,\quad q=\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle\\
+N&=\operatorname{smoothstep}(0.38,-0.28,s)\operatorname{smoothstep}(0.58,0.04,|q|)\,\operatorname{smoothstep}(0.35,0.92,0.65n_1+0.55n_2)\\
+S_{t+1}&=\operatorname{mix}(0.963S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+B\,c_{beam}+P\,c_{particle},\,\alpha)
 \end{aligned}$$`,
     symbols:
-      `$C=e^{-26r}$ is the central choke-point intensity; $A$ is the accretion-ring shell term near $r\approx0.09$.
-$J=e^{-38|p_y|}\,\operatorname{smoothstep}(0.06,0.9,|p_x|)$ is the bipolar jet envelope and $\alpha=0.035+0.42C+0.28J+0.15g_m$.`,
+      `$\hat{\mathbf{d}}=(1,1)/\sqrt{2}$ is the diagonal beam axis; $N$ is source-nebula occupancy in the lower-left region.
+$C=e^{-34r}$ is core intensity, $B=e^{-28|q|}\,\operatorname{smoothstep}(-0.04,0.52,s)\,\beta$ is forward beam energy, and $P$ is stochastic particle spark occupancy.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'Inward spiral advection collapses signal into the center, where luminosity concentrates and is then expelled laterally as pulsed jet structure; outside this region, space is intentionally near-black.',
+        body: 'Gas is generated asymmetrically in the lower-left, spirals inward under turbulent advection, flashes at the singularity, then exits along a directional jet so the scene reads as collapse + explosion rather than symmetric bloom.',
       },
       {
         heading: 'Key variables',
-        body: 'Core falloff (26), jet confinement (38), and carry gain $(22+20C+12J)$ are the most visible controls for collapse strength, jet sharpness, and propagation speed.',
+        body: 'Beam confinement (28), core falloff (34), source mask thresholds $(0.38,-0.28)$ and particle grid density (85) control how focused, energetic, and detailed the quasar effect appears.',
       },
     ],
   },
