@@ -411,24 +411,24 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom now emphasizes a true pinch: heavy purple haze in the lower-left is compressed into the singularity, then expelled as a brighter top-right quasar beam.',
+      'Chiaroscuro Bloom keeps the diagonal quasar pinch, but now adds Furnace-Mire-style stepped harmonic "teeth" so inflow and outflow feel serrated, particulate, and more violent.',
     equation:
       `$$\begin{aligned}
-\mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad \hat{\mathbf{d}}=(1,1)/\sqrt{2}\\
-\pi&=e^{-7.5r}\,\operatorname{smoothstep}(0.72,-0.08,s),\quad q'=(1-0.88\pi)q\\
-S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N(s,q')\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.65B\,c_{beam}+P\,c_{particle},\,\alpha)
+\mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad q'=(1-0.88\pi)q,\quad \pi=e^{-7.5r}\operatorname{smoothstep}(0.72,-0.08,s)\\
+T&=\max\left(\sin(0.22\,\mathrm{round}(32u)+0.07\,\mathrm{round}(90q)-6.5t)+0.5\sin(0.11\,\mathrm{round}(32u)-4.2t),0\right)\,e^{-18|q|}\\
+S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.65B\,c_{beam}+T\,c_{tooth}+P\,c_{particle},\,\alpha)
 \end{aligned}$$`,
     symbols:
-      `$s=\langle\mathbf{p},\hat{\mathbf{d}}\rangle$ and $q=\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle$ are diagonal/orthogonal coordinates; $q'$ is pinch-compressed width.
-$\pi$ is the pinch strength, $C=e^{-40r}$ core compression, and $B=e^{-38|q|}\,\operatorname{smoothstep}(-0.02,0.95,s)\,\beta$ forward beam energy.`,
+      `$s=\langle\mathbf{p},\hat{\mathbf{d}}\rangle$ and $q=\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle$ are diagonal coordinates; $q'$ is pinch-compressed width.
+$T$ is the stepped harmonic teeth term (rounded phase bins), adapted from the quantized-harmonic logic that gives Furnace Mire its biting energy texture.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'Instead of haze orbiting around the core, the cross-axis coordinate is actively squeezed so purple gas deforms inward, funnels into the singularity, and then vents into a high-luminance diagonal jet.',
+        body: 'Purple haze is pinched into the singularity, but now the transport field includes quantized harmonic surges. Those surges break smooth flow into jagged bursts, giving the beam and particles sharper “teeth.”',
       },
       {
         heading: 'Key variables',
-        body: 'Pinch gain $(0.88)$, pinch falloff $(7.5)$, beam confinement (38), and source-mask bounds $(0.7,-0.4)$ jointly control how hard the gas collapses versus how broad the reservoir remains.',
+        body: 'Teeth quantization scales (32 and 90), teeth temporal rates (6.5 and 4.2), pinch gain (0.88), and beam confinement (38) control how gritty/biting versus smooth/cinematic the quasar feels.',
       },
     ],
   },
