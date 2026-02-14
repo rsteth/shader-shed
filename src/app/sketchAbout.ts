@@ -411,24 +411,24 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom now emphasizes a heavy lower-left gas reservoir feeding a singularity that can slide only along the diagonal energy rail, then venting brighter outflow toward the upper-right.',
+      'Chiaroscuro Bloom now emphasizes a true pinch: heavy purple haze in the lower-left is compressed into the singularity, then expelled as a brighter top-right quasar beam.',
     equation:
       `$$\begin{aligned}
 \mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad \hat{\mathbf{d}}=(1,1)/\sqrt{2}\\
-N&=\operatorname{smoothstep}(0.62,-0.34,s)\operatorname{smoothstep}(0.92,0.03,|q|)\,\operatorname{smoothstep}(0.28,0.95,0.65n_1+0.5n_2+0.35n_3)\\
-S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.5B\,c_{beam}+P\,c_{particle},\,\alpha)
+\pi&=e^{-7.5r}\,\operatorname{smoothstep}(0.72,-0.08,s),\quad q'=(1-0.88\pi)q\\
+S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N(s,q')\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.65B\,c_{beam}+P\,c_{particle},\,\alpha)
 \end{aligned}$$`,
     symbols:
-      `$s=\langle\mathbf{p},\hat{\mathbf{d}}\rangle$ and $q=\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle$ are diagonal/orthogonal coordinates about the singularity.
-$C=e^{-38r}$ is core compression, $B=e^{-36|q|}\,\operatorname{smoothstep}(-0.02,0.92,s)\,\beta$ is forward beam energy, and $P$ is stochastic spark occupancy from a high-density grid.`,
+      `$s=\langle\mathbf{p},\hat{\mathbf{d}}\rangle$ and $q=\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle$ are diagonal/orthogonal coordinates; $q'$ is pinch-compressed width.
+$\pi$ is the pinch strength, $C=e^{-40r}$ core compression, and $B=e^{-38|q|}\,\operatorname{smoothstep}(-0.02,0.95,s)\,\beta$ forward beam energy.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'A broad nebula field forms in the lower-left diagonal, collapses into a tight core, then explodes into a brighter top-right beam with drifting particulate detail.',
+        body: 'Instead of haze orbiting around the core, the cross-axis coordinate is actively squeezed so purple gas deforms inward, funnels into the singularity, and then vents into a high-luminance diagonal jet.',
       },
       {
         heading: 'Key variables',
-        body: 'Source-mask bounds $(0.62,-0.34)$, beam confinement (36), core falloff (38), and particle grid scale (95) are the key levers for mass, brightness contrast, and perceived kinetic detail.',
+        body: 'Pinch gain $(0.88)$, pinch falloff $(7.5)$, beam confinement (38), and source-mask bounds $(0.7,-0.4)$ jointly control how hard the gas collapses versus how broad the reservoir remains.',
       },
     ],
   },

@@ -1,6 +1,6 @@
 /**
  * CHIAROSCURO BLOOM SKETCH
- * Quasar diagonal: dense lower-left gas collapses into a singularity and erupts brighter toward upper-right.
+ * Quasar diagonal: dense lower-left gas pinches into a singularity and erupts brighter toward upper-right.
  */
 
 export const sim = /* glsl */ `
@@ -26,7 +26,7 @@ void main() {
     vec2 axis = normalize(vec2(1.0, 1.0));
     vec2 perp = vec2(-axis.y, axis.x);
 
-    // Singularity moves ONLY along the diagonal beam axis (mouse constrained to line).
+    // Singularity moves ONLY along diagonal beam axis.
     vec2 mouseDelta = uMouse - vec2(0.5);
     float axisT = dot(mouseDelta, axis);
     vec2 coreUv = vec2(0.5) + axis * axisT * 0.65;
@@ -36,43 +36,58 @@ void main() {
     float across = dot(p, perp);
     float r = length(p) + 1e-4;
 
-    // Larger, denser lower-left gas field (more than before).
-    float sourceMask = smoothstep(0.62, -0.34, along) * smoothstep(0.92, 0.03, abs(across));
-    float nebA = fbm((st + vec2(-t * 0.05, t * 0.02)) * 3.0);
-    float nebB = fbm((st + vec2(-0.18 * t, -0.07 * t)).yx * 5.8 + vec2(4.0, -1.5));
-    float nebC = fbm((st + vec2(-0.09 * t, 0.03 * t)) * 10.0 + vec2(2.0, 11.0));
-    float nebula = smoothstep(0.28, 0.95, nebA * 0.65 + nebB * 0.5 + nebC * 0.35) * sourceMask;
+    // Pinch profile: strongest upstream (lower-left) near the singularity.
+    float upstream = smoothstep(0.72, -0.08, along);
+    float pinch = exp(-r * 7.5) * upstream;
 
-    // Infall + swirl into core.
+    // Compress across-axis coordinate to make gas visibly funnel into the core.
+    vec2 pinchedP = vec2(along, across * (1.0 - 0.88 * pinch));
+    vec2 pinched = axis * pinchedP.x + perp * pinchedP.y;
+    vec2 pinchUv = coreUv + pinched / aspect;
+
+    // Larger, denser lower-left gas field.
+    float sourceMask = smoothstep(0.7, -0.4, along) * smoothstep(0.95, 0.02, abs(pinchedP.y));
+    float nebA = fbm((pinchUv + vec2(-t * 0.06, t * 0.02)) * 3.0);
+    float nebB = fbm((pinchUv + vec2(-0.2 * t, -0.08 * t)).yx * 5.9 + vec2(4.0, -1.5));
+    float nebC = fbm((pinchUv + vec2(-0.1 * t, 0.03 * t)) * 10.5 + vec2(2.0, 11.0));
+    float nebula = smoothstep(0.26, 0.95, nebA * 0.68 + nebB * 0.52 + nebC * 0.35) * sourceMask;
+
+    // Infall-dominant flow with explicit pinch force into the axis.
     vec2 inward = -p / r;
+    vec2 axisPinch = -perp * sign(across) * pinch;
     vec2 swirl = vec2(-inward.y, inward.x);
     float turbulence = fbm(st * 11.5 + vec2(t * 0.27, -t * 0.21));
-    vec2 flow = normalize(inward * (2.1 + 1.2 * nebula) + swirl * (0.55 + 0.75 * turbulence) + vec2(1e-4));
+    vec2 flow = normalize(
+        inward * (2.5 + 1.4 * nebula)
+        + axisPinch * (1.6 + 0.8 * nebula)
+        + swirl * (0.12 + 0.18 * turbulence)
+        + vec2(1e-4)
+    );
 
-    // Stronger, brighter ejection to upper-right.
-    float beamAxis = exp(-abs(across) * 36.0);
-    float beamForward = smoothstep(-0.02, 0.92, along);
-    float beamPulse = 0.52 + 0.48 * sin(along * 42.0 - t * 8.8 + turbulence * 11.0);
+    // Strong, bright ejection to upper-right.
+    float beamAxis = exp(-abs(across) * 38.0);
+    float beamForward = smoothstep(-0.02, 0.95, along);
+    float beamPulse = 0.55 + 0.45 * sin(along * 44.0 - t * 9.0 + turbulence * 11.0);
     float beam = beamAxis * beamForward * beamPulse;
 
-    // Particle detail: dense around beam and explosive around the core.
-    vec2 cell = floor((p + vec2(t * 0.9, -t * 0.35)) * 95.0);
-    float particle = step(0.992, hash(cell + vec2(floor(t * 16.0), 0.0)));
-    particle *= (exp(-abs(across) * 24.0) * smoothstep(-0.25, 1.2, along + 0.15) + exp(-r * 26.0) * 1.2);
+    // Particle detail around beam + core burst.
+    vec2 cell = floor((p + vec2(t * 0.95, -t * 0.35)) * 98.0);
+    float particle = step(0.9915, hash(cell + vec2(floor(t * 17.0), 0.0)));
+    particle *= (exp(-abs(across) * 24.0) * smoothstep(-0.24, 1.2, along + 0.15) + exp(-r * 28.0) * 1.3);
 
-    float core = exp(-r * 38.0);
-    float shock = exp(-pow((r - 0.055) * 42.0, 2.0));
+    float core = exp(-r * 40.0);
+    float shock = exp(-pow((r - 0.052) * 44.0, 2.0));
 
-    vec2 carry = (flow * (20.0 + 36.0 * core + 12.0 * nebula) + axis * beam * 14.0) * px;
+    vec2 carry = (flow * (22.0 + 40.0 * core + 14.0 * nebula) + axis * beam * 15.0) * px;
     vec3 prev = texture(uPrevState, st - carry).rgb * (0.962 - 0.15 * uDt);
 
-    vec3 gasCol = mix(vec3(0.08, 0.04, 0.16), vec3(0.62, 0.22, 0.78), nebA) * nebula;
+    vec3 gasCol = mix(vec3(0.08, 0.04, 0.16), vec3(0.64, 0.24, 0.8), nebA) * nebula;
     vec3 coreCol = vec3(1.0, 0.98, 0.9) * core;
-    vec3 shockCol = vec3(1.0, 0.64, 0.24) * shock;
-    vec3 beamCol = vec3(0.78, 0.95, 1.0) * beam * 1.5;
+    vec3 shockCol = vec3(1.0, 0.66, 0.26) * shock;
+    vec3 beamCol = vec3(0.82, 0.96, 1.0) * beam * 1.65;
     vec3 particleCol = vec3(1.0, 1.0, 1.0) * particle * (0.45 + 0.55 * beamPulse);
 
-    float emptiness = 1.0 - smoothstep(0.11, 0.9, nebula + core + beam * 1.35);
+    float emptiness = 1.0 - smoothstep(0.1, 0.9, nebula + core + beam * 1.45);
 
     vec3 source = vec3(0.0);
     source += gasCol;
@@ -80,10 +95,10 @@ void main() {
     source += shockCol;
     source += beamCol;
     source += particleCol;
-    source *= (1.0 - 0.82 * emptiness);
+    source *= (1.0 - 0.8 * emptiness);
 
     float transfer = smoothstep(0.28, 0.0, distance(st, coreUv));
-    float inject = 0.04 + 0.3 * nebula + 0.48 * core + 0.52 * beam + 0.26 * particle + 0.12 * transfer;
+    float inject = 0.045 + 0.32 * nebula + 0.52 * core + 0.56 * beam + 0.28 * particle + 0.12 * transfer;
 
     vec3 color = mix(prev, source, clamp(inject, 0.0, 1.0));
     fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
