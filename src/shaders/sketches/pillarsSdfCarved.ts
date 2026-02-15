@@ -1,0 +1,118 @@
+/**
+ * PILLARS OF CREATION - SDF CARVED
+ */
+
+export const sim = /* glsl */ `
+in vec2 vUv;
+out vec4 fragColor;
+
+uniform float uTime;
+uniform vec2 uResolution;
+
+float hash(float n) { return fract(sin(n) * 43758.5453); }
+
+float valueNoise(vec3 p) {
+    vec3 i = floor(p);
+    vec3 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float n = dot(i, vec3(1.0, 57.0, 113.0));
+    float x1 = mix(hash(n), hash(n + 1.0), f.x);
+    float x2 = mix(hash(n + 57.0), hash(n + 58.0), f.x);
+    float x3 = mix(hash(n + 113.0), hash(n + 114.0), f.x);
+    float x4 = mix(hash(n + 170.0), hash(n + 171.0), f.x);
+    return mix(mix(x1, x2, f.y), mix(x3, x4, f.y), f.z);
+}
+
+float fbm3(vec3 p) {
+    float a = 0.5;
+    float v = 0.0;
+    for (int i = 0; i < 4; i++) {
+        v += a * valueNoise(p);
+        p *= 2.02;
+        a *= 0.5;
+    }
+    return v;
+}
+
+vec3 hubblePalette(float sulfur, float hydrogen, float oxygen) {
+    return sulfur * vec3(1.2, 0.25, 0.08)
+         + hydrogen * vec3(0.15, 1.1, 0.25)
+         + oxygen * vec3(0.08, 0.35, 1.2);
+}
+
+float cylinderSDF(vec3 p, float radius) {
+    return length(p.xz) - radius;
+}
+
+float sdfPillarMap(vec3 p, float t) {
+    float d = 1e6;
+
+    vec3 a = p - vec3(-0.7, 0.0, 0.2);
+    a.xz *= mat2(0.98, -0.2, 0.2, 0.98);
+    d = min(d, cylinderSDF(a, 0.35));
+
+    vec3 b = p;
+    b.xz *= mat2(0.95, 0.32, -0.32, 0.95);
+    d = min(d, cylinderSDF(b, 0.42));
+
+    vec3 c = p - vec3(0.65, 0.0, -0.15);
+    c.xz *= mat2(0.99, 0.1, -0.1, 0.99);
+    d = min(d, cylinderSDF(c, 0.30));
+
+    d += 0.25 * (p.y - 0.3);
+    d += (fbm3(p * 1.2 + vec3(0.0, t * 0.04, 0.0)) - 0.5) * 0.2;
+    return d;
+}
+
+float densityField(vec3 p, float t) {
+    float sdf = sdfPillarMap(p, t);
+    float shell = exp(-abs(sdf) * 9.0);
+    float fog = smoothstep(0.0, 1.0, fbm3(p * 0.6)) * 0.2;
+    return clamp(shell + fog - 0.14, 0.0, 1.0);
+}
+
+void main() {
+    vec2 fc = vUv * uResolution;
+    vec2 r = uResolution;
+    float t = uTime;
+    vec2 uv = (fc - 0.5 * r) / r.y;
+
+    vec3 ro = vec3(0.0, 0.2, -3.2) + vec3(0.15 * sin(t * 0.05), 0.05 * sin(t * 0.03), t * 0.05);
+    vec3 rd = normalize(vec3(uv, 1.25));
+
+    vec3 color = vec3(0.0);
+    float tr = 1.0;
+    float ray = 0.0;
+    const float maxSteps = 88.0;
+    const float stepSize = 0.06;
+
+    for (float i = 0.0; i < maxSteps; i++) {
+        vec3 p = ro + rd * ray;
+        float density = densityField(p, t);
+
+        float sulfur = density * smoothstep(0.2, 0.9, fbm3(p * 0.8));
+        float hydrogen = density * smoothstep(-0.1, 1.4, p.y);
+        float oxygen = density * smoothstep(0.3, 0.85, fbm3(p * 1.7 + 5.0));
+
+        color += tr * hubblePalette(sulfur, hydrogen, oxygen) * stepSize;
+        tr *= exp(-density * 2.35 * stepSize);
+        if (tr < 0.02) { break; }
+        ray += stepSize;
+    }
+
+    fragColor = vec4(color, 1.0);
+}
+`;
+
+export const final = /* glsl */ `
+in vec2 vUv;
+out vec4 fragColor;
+
+uniform sampler2D uTexture;
+uniform float uOpacity;
+
+void main() {
+    vec4 tex = texture(uTexture, vUv);
+    fragColor = vec4(tex.rgb, uOpacity);
+}
+`;

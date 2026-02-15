@@ -36,6 +36,10 @@ import * as axialChoir from './axialChoir';
 import * as prismTangle from './prismTangle';
 import * as noctilucentArc from './noctilucentArc';
 import * as furnaceMire from './furnaceMire';
+import * as pillarsOrganicTrunks from './pillarsOrganicTrunks';
+import * as pillarsSdfCarved from './pillarsSdfCarved';
+import * as pillarsCurlFlow from './pillarsCurlFlow';
+import * as pillarsRidgedCrags from './pillarsRidgedCrags';
 
 export interface Sketch {
   name: string;
@@ -194,6 +198,35 @@ export const sketches: Record<string, Sketch> = {
     meta: {
       attribution: 'Adapted from sketch by @XorDev',
     },
+  },
+
+  pillarsOrganicTrunks: {
+    name: 'Pillars: Organic Trunks',
+    description: 'Volumetric pillar trunks shaped by warped ridge noise',
+    sim: pillarsOrganicTrunks.sim,
+    final: pillarsOrganicTrunks.final,
+    includeInSlideshow: false,
+  },
+  pillarsSdfCarved: {
+    name: 'Pillars: SDF Carved',
+    description: 'SDF cylinder cluster carved into glowing dusty shells',
+    sim: pillarsSdfCarved.sim,
+    final: pillarsSdfCarved.final,
+    includeInSlideshow: false,
+  },
+  pillarsCurlFlow: {
+    name: 'Pillars: Curl Flow',
+    description: 'Flow-advected smoke plumes with Hubble-style emission',
+    sim: pillarsCurlFlow.sim,
+    final: pillarsCurlFlow.final,
+    includeInSlideshow: false,
+  },
+  pillarsRidgedCrags: {
+    name: 'Pillars: Ridged Crags',
+    description: 'Craggy ridge-driven columns with dusty erosion breakup',
+    sim: pillarsRidgedCrags.sim,
+    final: pillarsRidgedCrags.final,
+    includeInSlideshow: false,
   },
 };
 
