@@ -36,6 +36,7 @@ import * as axialChoir from './axialChoir';
 import * as prismTangle from './prismTangle';
 import * as noctilucentArc from './noctilucentArc';
 import * as furnaceMire from './furnaceMire';
+import * as pillarsCreation from './pillarsCreation';
 
 export interface Sketch {
   name: string;
@@ -194,6 +195,12 @@ export const sketches: Record<string, Sketch> = {
     meta: {
       attribution: 'Adapted from sketch by @XorDev',
     },
+  },
+  pillarsCreation: {
+    name: 'Pillars of Creation Variations',
+    description: 'Integrated organic, SDF, curl-flow, and ridged volumetric pillar studies',
+    sim: pillarsCreation.sim,
+    final: pillarsCreation.final,
   },
 };
 
