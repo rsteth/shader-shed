@@ -409,29 +409,6 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
       },
     ],
   },
-  chiaroscuroBloom: {
-    intro:
-      'Chiaroscuro Bloom now drives current in the same diagonal direction as the energy beam, with ultra anisotropic stretching with a wide intake cone into the singularity and a needle-tight output beam; particles are now explicitly advected through the core and ejected in beam direction.',
-    equation:
-      `$$\begin{aligned}
-\mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad (s,q)= (\langle\mathbf{p},\hat{\mathbf{d}}\rangle,\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle)\\
-(s',q')&=(0.28s,3.2q),\quad \pi=e^{-7.8r}\operatorname{smoothstep}(0.74,-0.1,s),\quad q_p=(1-0.9\pi)q\\
-S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+2.1B(s',q')\,c_{beam}+T(s',q')\,c_{tooth}+P_{in}+P_{out},\,\alpha)
-\end{aligned}$$`,
-    symbols:
-      `$\hat{\mathbf{d}}=(1,1)/\sqrt{2}$ is the beam/current axis. $(s',q')$ is a stretched coordinate frame that elongates structure along travel and tightens it across the beam.
-$T$ is the stepped harmonic teeth term in stretched space, $q_p$ is pinch-compressed width, and $R=e^{-118|q'|}$ is a hard ray gate that forces most trajectories through the singularity axis.`,
-    sections: [
-      {
-        heading: 'What is happening',
-        body: 'Flow is now intentionally beam-aligned with an asymmetric profile: a broad conical intake is attracted through the core, then collapsed into a very tight, elongated output stream. Separate intake and ejecta particle fields both move through the singularity and continue in beam direction.',
-      },
-      {
-        heading: 'Key variables',
-        body: 'Stretch factors $(0.28,3.2)$, pinch gain $(0.9)$, hard ray gate (118), beam confinement (92), cone-width taper, and teeth quantization scales (34, 190) set the balance between broad gravitational intake and needle-like thread ejection.',
-      },
-    ],
-  },
   eclipseWeave: {
     intro:
       'Eclipse Weave now places the viewer between two receding planes: an earthy floor and a luminous sky ceiling, both fading into atmospheric haze at depth.',
@@ -455,52 +432,7 @@ $C_{plane}$ blends either floor-grid/ridge shading or sky-band/cloud shading; de
       },
     ],
   },
-  umbraDrift: {
-    intro:
-      'Umbra Drift is a low-frequency fog field where cross-rotated noise advects color while dark wells open and close like weather systems.',
-    equation:
-      `$$\begin{aligned}
-\mathbf{n}&=(\operatorname{fbm}(3.2\mathbf{x}+(0,t))-0.5,\operatorname{fbm}(3.2\mathbf{x}+(9,-1.1t))-0.5),\quad \\mathbf{f}=(n_y,-n_x)\\
-S_{t+1}&=0.98S_t(\mathbf{x}-20\mathbf{f}\odot\mathbf{p})\\
-B&=0.5+0.5\sin(7x-5y+2.4t+\pi\,m),\quad m=\operatorname{fbm}(2.6\mathbf{x}+0.9\mathbf{f}+(0.4t,-0.35t))
-\end{aligned}$$`,
-    symbols:
-      `Darkness gate uses $D=\operatorname{smoothstep}(0.62,0.28,m+0.25g_m)$.
-$g_m=\operatorname{smoothstep}(0.3,0,\lVert\mathbf{x}-uMouse\rVert)$ deepens local shadow.`,
-    sections: [
-      {
-        heading: 'What is happening',
-        body: 'Advection carries prior luminance through a slow incompressible-like drift while a mist scalar modulates both chroma and occlusion.',
-      },
-      {
-        heading: 'Key variables',
-        body: 'Flow scale (20), mist frequency (2.6/3.2), and darkness threshold window (0.62 to 0.28) control softness versus stark contrast.',
-      },
-    ],
-  },
-  lumenGlyphs: {
-    intro:
-      'Lumen Glyphs carves glowing symbol-like contours from thresholded harmonic sums and lets those contours linger in neon turbulence.',
-    equation:
-      `$$\begin{aligned}
-G(\mathbf{q},\phi)&=\operatorname{smoothstep}(1.25,1.45,\sin q_x+\sin(1.7q_y-0.7\phi)+\sin(0.9(q_x+q_y)+1.2\phi))\\
-\Sigma&=\operatorname{clamp}(G(11(\mathbf{p}+0.22\mathbf{w}),1.1t)+G(8(\mathbf{p}_{yx}+0.18\mathbf{w}),-0.8t),0,1)\\
-S_{t+1}&=\operatorname{mix}(0.974S_t(\mathbf{x}-10\mathbf{w}^\perp\odot\mathbf{p}),\,\operatorname{mix}(c_0,c_1,\Sigma),\,0.08+0.2\Sigma)
-\end{aligned}$$`,
-    symbols:
-      `$\mathbf{w}$: fbm wobble vector; $\mathbf{w}^\perp=(w_y,-w_x)$.
-$c_0=(0.05,0.04,0.1)$ and $c_1=(0.35,0.95,0.85)$ are base neon endpoints.`,
-    sections: [
-      {
-        heading: 'What is happening',
-        body: 'Two harmonic glyph fields at different scales are thresholded and merged, producing intermittent rune-like contours that persist via feedback.',
-      },
-      {
-        heading: 'Key variables',
-        body: 'Threshold band (1.25 to 1.45), glyph scales (11 and 8), and feedback persistence (0.974) define symbol legibility and trail duration.',
-      },
-    ],
-  },
+
 
 };
 
