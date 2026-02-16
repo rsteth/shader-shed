@@ -24,6 +24,12 @@ import * as plasma from './plasma';
 import * as gradient from './gradient';
 import * as voronoi from './voronoi';
 import * as eclipseWeave from './eclipseWeave';
+import * as sdfTwistedLinks from './sdfTwistedLinks';
+import * as sdfGyroidPulse from './sdfGyroidPulse';
+import * as sdfMengerBloom from './sdfMengerBloom';
+import * as sdfOrbitalBlobs from './sdfOrbitalBlobs';
+import * as sdfCappedColumns from './sdfCappedColumns';
+import * as sdfKnotTunnel from './sdfKnotTunnel';
 
 export interface Sketch {
   name: string;
@@ -74,6 +80,48 @@ export const sketches: Record<string, Sketch> = {
     description: 'Interlaced corona rings and umbral cores orbiting the cursor',
     sim: eclipseWeave.sim,
     final: eclipseWeave.final,
+  },
+  sdfTwistedLinks: {
+    name: 'SDF Twisted Links',
+    description: 'Raymarched chain-like torus links with orbital twist',
+    sim: sdfTwistedLinks.sim,
+    final: sdfTwistedLinks.final,
+    includeInSlideshow: false,
+  },
+  sdfGyroidPulse: {
+    name: 'SDF Gyroid Pulse',
+    description: 'Oscillating gyroid shell with neon cavity lighting',
+    sim: sdfGyroidPulse.sim,
+    final: sdfGyroidPulse.final,
+    includeInSlideshow: false,
+  },
+  sdfMengerBloom: {
+    name: 'SDF Menger Bloom',
+    description: 'Fractal-inspired box lattice with blooming cavities',
+    sim: sdfMengerBloom.sim,
+    final: sdfMengerBloom.final,
+    includeInSlideshow: false,
+  },
+  sdfOrbitalBlobs: {
+    name: 'SDF Orbital Blobs',
+    description: 'Metaball cluster of orbiting blobs and glossy highlights',
+    sim: sdfOrbitalBlobs.sim,
+    final: sdfOrbitalBlobs.final,
+    includeInSlideshow: false,
+  },
+  sdfCappedColumns: {
+    name: 'SDF Capped Columns',
+    description: 'Repeating stone columns and arches in a raymarched hall',
+    sim: sdfCappedColumns.sim,
+    final: sdfCappedColumns.final,
+    includeInSlideshow: false,
+  },
+  sdfKnotTunnel: {
+    name: 'SDF Knot Tunnel',
+    description: 'Interlocked torus knots repeating down a tunnel',
+    sim: sdfKnotTunnel.sim,
+    final: sdfKnotTunnel.final,
+    includeInSlideshow: false,
   },
 };
 
