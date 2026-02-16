@@ -1,6 +1,6 @@
 /**
  * SDF MENGER BLOOM
- * Fractal-ish box lattice with emissive cavities.
+ * Kaleidoscopic box-fold fractal with emissive seams.
  */
 
 export const sim = /* glsl */ `
@@ -23,73 +23,94 @@ float sdBox(vec3 p, vec3 b) {
     return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
 }
 
-float menger(vec3 p) {
-    float d = sdBox(p, vec3(1.0));
+float boxFoldFractal(vec3 p) {
+    vec3 z = p;
     float scale = 1.0;
-    for (int i = 0; i < 4; i++) {
-        p = abs(p);
-        if (p.x < p.y) p.xy = p.yx;
-        if (p.x < p.z) p.xz = p.zx;
-        if (p.y < p.z) p.yz = p.zy;
-        p = p * 3.0 - vec3(2.0) * 2.0;
-        scale *= 3.0;
-        float c = sdBox(p, vec3(1.0, 0.25, 0.25)) / scale;
-        d = max(d, -c);
+    float d = 1e5;
+
+    for (int i = 0; i < 6; i++) {
+        z = clamp(z, -1.0, 1.0) * 2.0 - z;
+        float r2 = dot(z, z);
+        float k = clamp(1.35 / r2, 0.45, 2.2);
+        z *= k;
+        z += vec3(-0.16, 0.1, 0.14);
+        z.xy *= rot(0.45 + 0.08 * float(i) + uTime * 0.08);
+        z.yz *= rot(0.25 + uTime * 0.05);
+        scale *= k;
+
+        float cut = sdBox(z, vec3(0.58, 0.22, 0.22)) / scale;
+        d = min(d, cut);
     }
-    return d;
+
+    float shell = (length(z) - 0.33) / scale;
+    return max(d, shell);
 }
 
 float mapScene(vec3 p) {
-    p.xz *= rot(uTime * 0.2);
-    p.yz *= rot(0.4 + sin(uTime * 0.3) * 0.2);
-    return menger(p * 0.8);
+    vec3 q = p;
+    q.xz *= rot(uTime * 0.22);
+    q.xy *= rot(0.35 + sin(uTime * 0.17) * 0.35);
+    return boxFoldFractal(q * 0.95);
+}
+
+vec3 normal(vec3 p) {
+    vec2 e = vec2(0.0025, 0.0);
+    return normalize(vec3(
+        mapScene(p + e.xyy) - mapScene(p - e.xyy),
+        mapScene(p + e.yxy) - mapScene(p - e.yxy),
+        mapScene(p + e.yyx) - mapScene(p - e.yyx)
+    ));
 }
 
 void main() {
     vec2 uv = vUv * 2.0 - 1.0;
     uv.x *= uResolution.x / uResolution.y;
 
+    vec2 m = (uMouse - 0.5) * vec2(2.5, 1.6);
     vec3 ro = vec3(0.0, 0.0, 4.0);
-    vec2 m = (uMouse - 0.5) * vec2(2.2, 1.2);
-    ro.xz *= rot(m.x * 0.4);
-    ro.y += m.y * 0.8;
+    ro.xz *= rot(m.x * 0.45);
+    ro.y += m.y * 0.7;
 
-    vec3 rd = normalize(vec3(uv, -1.9));
+    vec3 ww = normalize(-ro);
+    vec3 uu = normalize(cross(vec3(0.0, 1.0, 0.0), ww));
+    vec3 vv = cross(ww, uu);
+    vec3 rd = normalize(uu * uv.x + vv * uv.y + ww * 1.9);
+
     float t = 0.0;
     float hit = -1.0;
-
-    for (int i = 0; i < 120; i++) {
+    for (int i = 0; i < 128; i++) {
         vec3 p = ro + rd * t;
         float d = mapScene(p);
-        if (d < 0.0012) {
-            hit = t;
-            break;
-        }
-        t += d * 0.9;
-        if (t > 14.0) break;
+        if (d < 0.001) { hit = t; break; }
+        t += d * 0.88;
+        if (t > 15.0) break;
     }
 
-    vec3 bg = mix(vec3(0.01, 0.015, 0.03), vec3(0.08, 0.05, 0.15), vUv.y);
+    vec3 bg = mix(vec3(0.008, 0.01, 0.03), vec3(0.07, 0.03, 0.12), rd.y * 0.5 + 0.5);
     vec3 col = bg;
 
     if (hit > 0.0) {
         vec3 p = ro + rd * hit;
-        vec2 e = vec2(0.003, 0.0);
-        vec3 n = normalize(vec3(
-            mapScene(p + e.xyy) - mapScene(p - e.xyy),
-            mapScene(p + e.yxy) - mapScene(p - e.yxy),
-            mapScene(p + e.yyx) - mapScene(p - e.yyx)
-        ));
+        vec3 n = normal(p);
+        vec3 l = normalize(vec3(0.55, 0.8, 0.1));
 
-        vec3 l = normalize(vec3(0.4, 0.9, -0.2));
         float diff = max(dot(n, l), 0.0);
-        float cavity = smoothstep(0.02, 0.0, abs(mapScene(p + n * 0.04)));
-        vec3 base = mix(vec3(0.35, 0.2, 0.65), vec3(0.95, 0.7, 0.35), p.y * 0.4 + 0.5);
-        col = base * (0.2 + diff * 0.9) + cavity * vec3(0.9, 0.25, 0.6);
+        float spec = pow(max(dot(reflect(-l, n), -rd), 0.0), 28.0);
+        float fres = pow(1.0 - max(dot(n, -rd), 0.0), 4.0);
+
+        float seam = smoothstep(0.02, 0.0, abs(mapScene(p + n * 0.025)));
+        vec3 base = mix(vec3(0.24, 0.18, 0.62), vec3(0.95, 0.6, 0.3), sin(p.y * 2.8 + uTime * 0.8) * 0.5 + 0.5);
+        vec3 emissive = vec3(0.95, 0.3, 0.75) * seam;
+
+        col = base * (0.12 + diff * 0.95) + spec * vec3(1.0) * 0.8;
+        col += emissive * (0.45 + 0.55 * sin(uTime * 2.2 + p.x * 5.0));
+        col += fres * vec3(0.6, 0.8, 1.0);
+        col = mix(bg, col, exp(-hit * 0.14));
     }
 
-    vec3 prev = texture(uPrevState, vUv + vec2(0.0, 1.0 / uResolution.y) * 0.7).rgb;
-    col = mix(prev * (0.968 - uDt * 0.08), col, 0.22);
+    vec2 trail = vec2(1.0 / uResolution.x, 0.0) * (0.6 + 0.4 * sin(uTime * 0.6));
+    vec3 prev = texture(uPrevState, vUv - trail).rgb;
+    col = mix(prev * (0.968 - uDt * 0.07), col, 0.22);
 
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
@@ -104,9 +125,10 @@ uniform float uTime;
 
 void main() {
     vec3 color = texture(uTexture, vUv).rgb;
-    float vig = smoothstep(0.95, 0.25, distance(vUv, vec2(0.5)));
-    color *= vig;
-    color += vec3(0.01, 0.005, 0.02) * sin(uTime * 0.7);
+    color = pow(color, vec3(0.95));
+    float pulse = sin(uTime * 0.9) * 0.5 + 0.5;
+    color += vec3(0.02, 0.006, 0.018) * pulse;
+    color *= smoothstep(0.97, 0.23, distance(vUv, vec2(0.5)));
     fragColor = vec4(clamp(color, 0.0, 1.0), uOpacity);
 }
 `;
