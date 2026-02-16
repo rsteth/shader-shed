@@ -62,14 +62,17 @@ void main() {
     float toothField = sin(q1 * 0.22 + q2 * 0.06 - t * 6.8) + 0.5 * sin(q1 * 0.11 - t * 4.3);
     float teeth = max(toothField, 0.0) * exp(-abs(stretchedP.y) * 38.0) * smoothstep(-0.1, 1.9, along) * upstream;
 
+    // Hard pinch gate: most trajectories must pass through singularity axis.
+    float rayGate = exp(-abs(stretchedP.y) * 118.0);
+
     // Beam-aligned current: dominant axis flow, minimal crosswise drift.
     vec2 inwardAxis = -axis * sign(along) * smoothstep(1.8, 0.0, abs(along));
-    vec2 pinchNarrow = -perp * sign(across) * pinch * 1.0;
+    vec2 pinchNarrow = -perp * sign(across) * pinch * 1.55;
     float turbulence = fbm(st * 11.5 + vec2(t * 0.27, -t * 0.21));
     vec2 flow = normalize(
-        axis * (2.8 + 2.0 * nebula + 1.6 * teeth)
-        + inwardAxis * (1.2 + 0.9 * nebula)
-        + pinchNarrow
+        axis * (3.0 + 2.2 * nebula + 1.8 * teeth)
+        + inwardAxis * (1.35 + 1.05 * nebula)
+        + pinchNarrow * (1.0 + 0.6 * rayGate)
         + vec2(0.03, -0.03) * (turbulence - 0.5)
         + vec2(1e-4)
     );
@@ -78,18 +81,29 @@ void main() {
     float beamAxis = exp(-abs(stretchedP.y) * 92.0);
     float beamForward = smoothstep(-0.08, 2.3, along);
     float beamPulse = 0.55 + 0.45 * sin(along * 39.0 - t * 8.6 + turbulence * 9.0 + teeth * 2.7);
-    float beam = beamAxis * beamForward * beamPulse * (1.0 + 0.4 * teeth);
+    float beam = beamAxis * beamForward * beamPulse * (1.0 + 0.4 * teeth) * (0.35 + 0.65 * rayGate);
 
-    // Particle detail elongated along travel direction.
-    vec2 cell = floor((vec2(stretchedP.x * 0.42, stretchedP.y * 1.9) + vec2(t * 0.95, -t * 0.35)) * 170.0);
-    float particle = step(0.991, hash(cell + vec2(floor(t * 17.0), 0.0)));
-    particle *= (exp(-abs(stretchedP.y) * 50.0) * smoothstep(-0.24, 2.6, along + 0.15) + exp(-r * 30.0) * 0.9);
-    particle += teeth * 0.32;
+    // Directional particles: intake cone (lower-left -> core) + ejecta beam (core -> upper-right).
+    vec2 intakeCell = floor((vec2(stretchedP.x * 0.46, stretchedP.y * 1.55) + vec2(t * 1.15, -t * 0.2)) * 176.0);
+    vec2 ejectCell = floor((vec2(stretchedP.x * 0.34, stretchedP.y * 2.25) + vec2(t * 1.55, -t * 0.12)) * 206.0);
+
+    float intakeSpark = step(0.992, hash(intakeCell + vec2(floor(t * 19.0), 1.0)));
+    float ejectSpark = step(0.993, hash(ejectCell + vec2(floor(t * 27.0), 7.0)));
+
+    float intakeMask = smoothstep(-1.6, -0.02, along) * smoothstep(coneWidth, 0.012, abs(pinchedP.y));
+    float ejectMask = smoothstep(-0.02, 2.8, along) * exp(-abs(stretchedP.y) * 78.0);
+
+    float intakeParticle = intakeSpark * intakeMask;
+    float ejectParticle = ejectSpark * ejectMask * (0.7 + 0.3 * beamPulse);
+
+    float particle = intakeParticle + ejectParticle + teeth * 0.22;
 
     float core = exp(-r * 42.0);
     float shock = exp(-pow((r - 0.05) * 46.0, 2.0));
 
-    vec2 carry = (flow * (28.0 + 46.0 * core + 20.0 * nebula + 16.0 * teeth)) * px;
+    float throughCore = smoothstep(1.8, 0.0, abs(along));
+    vec2 carry = (flow * (30.0 + 52.0 * core + 22.0 * nebula + 18.0 * teeth)
+        + axis * (8.0 * throughCore + 12.0 * beam)) * px;
     vec3 prev = texture(uPrevState, st - carry).rgb * (0.962 - 0.15 * uDt);
 
     vec3 gasCol = mix(vec3(0.08, 0.04, 0.16), vec3(0.64, 0.24, 0.8), nebA) * nebula;
@@ -97,9 +111,9 @@ void main() {
     vec3 shockCol = vec3(1.0, 0.66, 0.26) * shock;
     vec3 beamCol = vec3(0.9, 0.99, 1.0) * beam * 2.1;
     vec3 toothCol = vec3(1.0, 0.85, 0.45) * teeth * (0.6 + 0.4 * beamPulse);
-    vec3 particleCol = vec3(1.0, 1.0, 1.0) * particle * (0.45 + 0.55 * beamPulse);
+    vec3 particleCol = vec3(1.0, 1.0, 1.0) * particle * (0.4 + 0.6 * beamPulse) * (0.3 + 0.7 * rayGate);
 
-    float emptiness = 1.0 - smoothstep(0.06, 0.98, nebula + core + beam * 2.3 + teeth * 0.85);
+    float emptiness = 1.0 - smoothstep(0.05, 0.985, nebula + core + beam * 2.5 + teeth * 0.9 + rayGate * 0.3);
 
     vec3 source = vec3(0.0);
     source += gasCol;
@@ -111,7 +125,7 @@ void main() {
     source *= (1.0 - 0.8 * emptiness);
 
     float transfer = smoothstep(0.28, 0.0, distance(st, coreUv));
-    float inject = 0.04 + 0.26 * nebula + 0.5 * core + 0.78 * beam + 0.34 * teeth + 0.38 * particle + 0.1 * transfer;
+    float inject = 0.035 + 0.24 * nebula + 0.56 * core + 0.82 * beam + 0.34 * teeth + 0.42 * particle + 0.1 * transfer;
 
     vec3 color = mix(prev, source, clamp(inject, 0.0, 1.0));
     fragColor = vec4(clamp(color, 0.0, 1.0), 1.0);

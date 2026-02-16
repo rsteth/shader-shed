@@ -411,24 +411,24 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
   },
   chiaroscuroBloom: {
     intro:
-      'Chiaroscuro Bloom now drives current in the same diagonal direction as the energy beam, with ultra anisotropic stretching with a wide intake cone into the singularity and a needle-tight output beam, so flow reads like threads pulled through then fired out.',
+      'Chiaroscuro Bloom now drives current in the same diagonal direction as the energy beam, with ultra anisotropic stretching with a wide intake cone into the singularity and a needle-tight output beam; particles are now explicitly advected through the core and ejected in beam direction.',
     equation:
       `$$\begin{aligned}
 \mathbf{c}&=0.5+0.65\,\hat{\mathbf{d}}\,\langle uMouse-0.5,\hat{\mathbf{d}}\rangle,\quad (s,q)= (\langle\mathbf{p},\hat{\mathbf{d}}\rangle,\langle\mathbf{p},\hat{\mathbf{d}}^\perp\rangle)\\
 (s',q')&=(0.28s,3.2q),\quad \pi=e^{-7.8r}\operatorname{smoothstep}(0.74,-0.1,s),\quad q_p=(1-0.9\pi)q\\
-S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+1.7B(s',q')\,c_{beam}+T(s',q')\,c_{tooth}+P(s',q')\,c_{particle},\,\alpha)
+S_{t+1}&=\operatorname{mix}(0.962S_t(\mathbf{x}-\mathbf{u}_{carry}),\,N\,c_{gas}+C\,c_{core}+K\,c_{shock}+2.1B(s',q')\,c_{beam}+T(s',q')\,c_{tooth}+P_{in}+P_{out},\,\alpha)
 \end{aligned}$$`,
     symbols:
       `$\hat{\mathbf{d}}=(1,1)/\sqrt{2}$ is the beam/current axis. $(s',q')$ is a stretched coordinate frame that elongates structure along travel and tightens it across the beam.
-$T$ is the stepped harmonic teeth term in stretched space, and $q_p$ is the pinch-compressed cross-axis width near the singularity.`,
+$T$ is the stepped harmonic teeth term in stretched space, $q_p$ is pinch-compressed width, and $R=e^{-118|q'|}$ is a hard ray gate that forces most trajectories through the singularity axis.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'Flow is now intentionally beam-aligned with an asymmetric profile: a broad conical intake is attracted through the core, then collapsed into a very tight, elongated output stream. The remap makes those streams read like drawn threads.',
+        body: 'Flow is now intentionally beam-aligned with an asymmetric profile: a broad conical intake is attracted through the core, then collapsed into a very tight, elongated output stream. Separate intake and ejecta particle fields both move through the singularity and continue in beam direction.',
       },
       {
         heading: 'Key variables',
-        body: 'Stretch factors $(0.28,3.2)$, pinch gain $(0.9)$, beam confinement (92 in stretched space), cone-width taper, and teeth quantization scales (34, 190) set the balance between broad gravitational intake and needle-like thread ejection.',
+        body: 'Stretch factors $(0.28,3.2)$, pinch gain $(0.9)$, hard ray gate (118), beam confinement (92), cone-width taper, and teeth quantization scales (34, 190) set the balance between broad gravitational intake and needle-like thread ejection.',
       },
     ],
   },
