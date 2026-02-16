@@ -1,0 +1,3 @@
+:HL["/shader-shed/previews/c_mobile-add-automatic-shader-slideshow-pages-a9ff6756/_next/static/chunks/f11f74c38a579b24.css","style"]
+:HL["https://cdn.jsdelivr.net/npm/katex@0.16.28/dist/katex.min.css","style",{"crossOrigin":"anonymous"}]
+0:{"buildId":"-6Vf8HxPBk8PaBZGbvN4D","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"slideshow-ascii","paramType":null,"paramKey":"slideshow-ascii","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
