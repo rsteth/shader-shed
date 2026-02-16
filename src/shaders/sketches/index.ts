@@ -36,6 +36,7 @@ import * as axialChoir from './axialChoir';
 import * as prismTangle from './prismTangle';
 import * as noctilucentArc from './noctilucentArc';
 import * as furnaceMire from './furnaceMire';
+import * as eclipseWeave from './eclipseWeave';
 
 export interface Sketch {
   name: string;
@@ -195,6 +196,15 @@ export const sketches: Record<string, Sketch> = {
       attribution: 'Adapted from sketch by @XorDev',
     },
   },
+
+  eclipseWeave: {
+    name: 'Eclipse Weave',
+    description: 'Interlaced corona rings and umbral cores orbiting the cursor',
+    sim: eclipseWeave.sim,
+    final: eclipseWeave.final,
+  },
+
+
 };
 
 export const sketchIds = Object.keys(sketches);

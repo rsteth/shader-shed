@@ -409,6 +409,31 @@ The constants $0.57$, $0.8$, and divisor $20$ are fixed in shader code.`,
       },
     ],
   },
+  eclipseWeave: {
+    intro:
+      'Eclipse Weave now places the viewer between two receding planes: an earthy floor and a luminous sky ceiling, both fading into atmospheric haze at depth.',
+    equation:
+      `$$\begin{aligned}
+\delta&=y-h,\quad z=\frac{1}{|\delta|+0.035},\quad \mathbf{w}=((x-0.5)z,\,z+0.45t)\\
+\mathbf{d}&=(\operatorname{fbm}(0.18\mathbf{w}+(0,0.08t)),\operatorname{fbm}(0.21\mathbf{w}_{yx}+(12,-0.07t)))-0.5\\
+S_{t+1}&=\operatorname{mix}(0.972S_t(\mathbf{x}-\mathbf{u}_{flow}),\,\operatorname{mix}(C_{plane},C_{fog},\operatorname{smoothstep}(2,18,z)),\,\beta)
+\end{aligned}$$`,
+    symbols:
+      `$h=0.5+0.08(uMouse_y-0.5)$ is horizon height; $\delta<0$ selects floor treatment and $\delta>0$ selects ceiling treatment.
+$C_{plane}$ blends either floor-grid/ridge shading or sky-band/cloud shading; depth $z$ increases haze through $C_{fog}$.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'A perspective-style depth map is built from distance to horizon, then used to sample separate procedural worlds for ground and sky. Both worlds are gradually obscured by fog as they recede.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Horizon offset gain $(0.08)$, depth denominator bias $(0.035)$, and haze window $(2,18)$ most strongly control camera feel, vanishing-point compression, and atmospheric distance.',
+      },
+    ],
+  },
+
+
 };
 
 function buildOperatorLegend(equation: string): string[] {
