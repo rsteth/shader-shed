@@ -124,6 +124,161 @@ $C_{cell}$ includes the hard-coded channel oscillations $(12,15,18)$ and edge sm
       },
     ],
   },
+
+  aizawaSpiralNest: {
+    intro:
+      'Aizawa Spiral Nest renders the canonical Aizawa trajectory as a dense, depth-weighted ribbon cloud. Multiple seeds are integrated, transient motion is discarded, and only settled attractor orbits are projected into view.',
+    equation:
+      `$$\\begin{aligned}
+\\dot x&=(z-b)x-dy\\
+\\dot y&=dx+(z-b)y\\
+\\dot z&=c+az-\\frac{z^3}{3}-(x^2+y^2)(1+ez)+fzx^3\\
+(a,b,c,d,e,f)&=(0.95,0.7,0.6,3.5,0.25,0.1)
+\\end{aligned}$$`,
+    symbols:
+      `$x,y,z$: attractor state coordinates integrated by RK4.
+$\\Delta t=0.01$: integration step used per sub-iteration.
+$\\mathbf{p}_k$: seeded trajectories after burn-in; each contributes projected density.
+$uMouse$: view-only modulation (camera yaw/pitch), not equation constants.`,
+    sections: [
+      {
+        heading: 'Variable meanings',
+        body: `The first two equations couple planar rotation and radial growth/decay through $(z-b)$. The third equation injects vertical forcing ($c+az$), cubic damping ($-z^3/3$), radial suppression ($-(x^2+y^2)(1+ez)$), and asymmetric twist ($fzx^3$).`,
+      },
+      {
+        heading: 'Exposition',
+        body: 'This sketch aims for a volumetric "orb with tunnel" feel: a burn-in phase removes transient startup paths, then three independent seeds are accumulated to reveal the invariant set rather than a single thread. Color is depth-tinted to make front/back layering legible.',
+      },
+    ],
+  },
+  aizawaTwinOrbit: {
+    intro:
+      'Aizawa Twin Orbit mirrors two multi-seed attractor bundles into bilateral threads, emphasizing symmetry and parallax while keeping the underlying dynamics fully canonical.',
+    equation:
+      `$$\\begin{aligned}
+\\dot x&=(z-b)x-dy,\\qquad
+\\dot y=dx+(z-b)y,\\qquad
+\\dot z=c+az-\\frac{z^3}{3}-(x^2+y^2)(1+ez)+fzx^3\\
+(a,b,c,d,e,f)&=(0.95,0.7,0.6,3.5,0.25,0.1)
+\\end{aligned}$$`,
+    symbols:
+      `$\\mathbf{p}_{A,i},\\mathbf{p}_{B,i}$: left/right trajectory seeds after burn-in.
+$\\operatorname{mirror}_x$: rendering transform only; ODE integration is unchanged.
+$uMouse$: camera yaw offset and gentle framing control.`,
+    sections: [
+      {
+        heading: 'Variable meanings',
+        body: 'The ODE is integrated identically for every seed. Distinct visual bundles come from seed choice and mirrored projection, not from modifying $a,b,c,d,e,f$.',
+      },
+      {
+        heading: 'Exposition',
+        body: 'The composition treats the strange attractor like calligraphy in space: each side accumulates two long trajectories, so glow builds from repeated visitation frequency and produces a thicker, less line-like mass.',
+      },
+    ],
+  },
+  aizawaInkMap: {
+    intro:
+      'Aizawa Ink Map projects multiple settled Aizawa trajectories onto a 2D plane and interprets visitation density as contour ink, producing topographic bands rather than a literal 3D object.',
+    equation:
+      `$$\\begin{aligned}
+\\dot x&=(z-b)x-dy\\
+\\dot y&=dx+(z-b)y\\
+\\dot z&=c+az-\\frac{z^3}{3}-(x^2+y^2)(1+ez)+fzx^3,\\quad
+(a,b,c,d,e,f)=(0.95,0.7,0.6,3.5,0.25,0.1)
+\\end{aligned}$$`,
+    symbols:
+      `$\\rho(\\mathbf{u})$: accumulated sample density from projected points.
+$\\kappa(\\mathbf{u})$: ridge/contour enhancement from oscillatory distance bands.
+$\\mathbf{u}$: normalized 2D screen coordinate.
+$uMouse$: seed offset only.`,
+    sections: [
+      {
+        heading: 'Variable meanings',
+        body: 'The dynamics remain 3D, but rendering evaluates radial distance in screen space to form scalar fields $\\rho$ and $\\kappa$ that map naturally to paper/ink tones.',
+      },
+      {
+        heading: 'Exposition',
+        body: 'By layering three burned-in seeds, the map captures recurrent neighborhoods of the attractor as darker basins and contour bands. This turns chaotic recurrence into something closer to a cartographic print.',
+      },
+    ],
+  },
+  aizawaPhaseField: {
+    intro:
+      'Aizawa Phase Field flattens the attractor into an $(x,z)$ portrait and modulates it with interference weave, using trajectory recurrence to drive luminous phase bands.',
+    equation:
+      `$$\\begin{aligned}
+\\dot x&=(z-b)x-dy\\
+\\dot y&=dx+(z-b)y\\
+\\dot z&=c+az-\\frac{z^3}{3}-(x^2+y^2)(1+ez)+fzx^3\\
+(a,b,c,d,e,f)&=(0.95,0.7,0.6,3.5,0.25,0.1)
+\\end{aligned}$$`,
+    symbols:
+      `$d_{min}$: nearest projected distance to any sampled trajectory point.
+$w$: interference accumulator used for lattice coloring.
+$uMouse$: horizontal phase framing / seed offset only.`,
+    sections: [
+      {
+        heading: 'Variable meanings',
+        body: 'A low $d_{min}$ means the pixel lies near frequently visited attractor loci. The weave term $w$ overlays coherent oscillation so high-density regions pulse with structured chroma instead of flat brightness.',
+      },
+      {
+        heading: 'Exposition',
+        body: 'This is intentionally planar, but still dynamical: burn-in and multi-seed integration preserve the attractor’s global structure while the interference field reveals local flow neighborhoods as shifting textile-like bands.',
+      },
+    ],
+  },
+  sdfAizawaFilament: {
+    intro:
+      'SDF Aizawa Filament interprets trajectory history as a union of tiny moving tubes in signed-distance space, then raymarches the resulting implicit geometry with glossy lighting.',
+    equation:
+      `$$\\begin{aligned}
+\\dot x&=(z-b)x-dy,\\quad
+\\dot y=dx+(z-b)y,\\quad
+\\dot z=c+az-\\frac{z^3}{3}-(x^2+y^2)(1+ez)+fzx^3\\
+(a,b,c,d,e,f)&=(0.95,0.7,0.6,3.5,0.25,0.1)
+\\end{aligned}$$`,
+    symbols:
+      `$d(\\mathbf{q})$: signed distance to nearest trajectory tube sample.
+$\\mathbf{q}$: raymarched query position in scene space.
+$\\mathbf{p}_i$: burned-in attractor seeds used to construct tube unions.
+$uMouse$: camera/view transform only.`,
+    sections: [
+      {
+        heading: 'Variable meanings',
+        body: 'For each seed, trajectory points become SDF primitives of radius $r_i$, and the scene distance is the minimum over all seeds/samples. Surface normals are finite-difference gradients of $d(\\mathbf{q})$.',
+      },
+      {
+        heading: 'Exposition',
+        body: 'Compared to point splats, implicit tubes produce a materially solid attractor. Multi-seed tube unions increase occupancy and reduce single-strand artifacts, yielding a more sculptural and coherent chaotic object.',
+      },
+    ],
+  },
+  sdfAizawaRelief: {
+    intro:
+      'SDF Aizawa Relief carves a shallow slab with attractor-driven grooves: the same canonical flow is sampled as engraving paths, then lit like a physical etched plate.',
+    equation:
+      `$$\\begin{aligned}
+\\dot x&=(z-b)x-dy\\
+\\dot y&=dx+(z-b)y\\
+\\dot z&=c+az-\\frac{z^3}{3}-(x^2+y^2)(1+ez)+fzx^3,\\qquad
+(a,b,c,d,e,f)=(0.95,0.7,0.6,3.5,0.25,0.1)
+\\end{aligned}$$`,
+    symbols:
+      `$d_{slab}(\\mathbf{q})$: base slab signed distance.
+$d_{groove}(\\mathbf{q})$: nearest groove distance from sampled trajectories.
+$d(\\mathbf{q})=\\max(d_{slab},d_{groove})$: carved-relief composition.
+$uMouse$: framing offset only.`,
+    sections: [
+      {
+        heading: 'Variable meanings',
+        body: 'The slab sets physical thickness while trajectory-derived groove distance subtracts material locally. Using multiple burned-in seeds creates a richer engraved network with fewer degenerate channels.',
+      },
+      {
+        heading: 'Exposition',
+        body: 'This sketch frames chaos as fabrication: the attractor is not shown as particles but as negative space in a plate. Recurrence becomes depth, and lighting reveals the flow as tactile grooves and ridges.',
+      },
+    ],
+  },
   eclipseWeave: {
     intro:
       'Eclipse Weave now places the viewer between two receding planes: an earthy floor and a luminous sky ceiling, both fading into atmospheric haze at depth.',

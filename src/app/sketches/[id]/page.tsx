@@ -4,7 +4,15 @@ import MathText from '@/components/MathText';
 import { getSketchAbout } from '@/app/sketchAbout';
 import { sketches } from '@/shaders/sketches';
 
-const aboutEnabledSketchIds = ['eclipseWeave'] as const;
+const aboutEnabledSketchIds = [
+  'eclipseWeave',
+  'aizawaSpiralNest',
+  'aizawaTwinOrbit',
+  'aizawaInkMap',
+  'aizawaPhaseField',
+  'sdfAizawaFilament',
+  'sdfAizawaRelief',
+] as const;
 
 type AboutSketchId = (typeof aboutEnabledSketchIds)[number];
 
