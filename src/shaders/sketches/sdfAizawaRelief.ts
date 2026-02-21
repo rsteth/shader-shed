@@ -12,42 +12,50 @@ uniform vec2 uResolution;
 uniform vec2 uMouse;
 uniform float uDt;
 
-vec3 aizawa(vec3 p, vec4 k) {
+vec3 aizawa(vec3 p) {
+    const float a = 0.95;
+    const float b = 0.7;
+    const float c = 0.6;
+    const float d = 3.5;
+    const float e = 0.25;
+    const float f = 0.1;
     return vec3(
-        (p.z - k.y) * p.x - k.w * p.y,
-        k.w * p.x + (p.z - k.y) * p.y,
-        k.z + k.x * p.z - (p.z * p.z * p.z) / 3.0 - (p.x * p.x + p.y * p.y) * (1.0 + 0.25 * p.z) + 0.1 * p.z * p.x * p.x * p.x
+        (p.z - b) * p.x - d * p.y,
+        d * p.x + (p.z - b) * p.y,
+        c + a * p.z - (p.z * p.z * p.z) / 3.0 - (p.x * p.x + p.y * p.y) * (1.0 + e * p.z) + f * p.z * p.x * p.x * p.x
     );
 }
 
-vec3 stepAizawa(vec3 p, float dt, vec4 k) {
-    vec3 k1 = aizawa(p, k);
-    vec3 k2 = aizawa(p + 0.5 * dt * k1, k);
-    return p + dt * k2;
+vec3 stepAizawa(vec3 p, float dt) {
+    vec3 k1 = aizawa(p);
+    vec3 k2 = aizawa(p + 0.5 * dt * k1);
+    vec3 k3 = aizawa(p + 0.5 * dt * k2);
+    vec3 k4 = aizawa(p + dt * k3);
+    return p + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }
 
-float mapScene(vec3 p, vec4 k) {
+float mapScene(vec3 p) {
     float slab = abs(p.z) - 0.12;
 
     float track = 9.0;
     vec3 a = vec3(0.1, 0.0, 0.0);
-    for (int i = 0; i < 80; i++) {
-        a = stepAizawa(a, 0.012, k);
-        vec2 q = a.xy * 0.34;
+    for (int i = 0; i < 96; i++) {
+        a = stepAizawa(a, 0.0098);
+        vec2 q = a.xy * 0.33;
         float fi = float(i);
-        float groove = length(p.xy - q) - (0.03 + 0.02 * sin(fi * 0.17 + uTime));
+        float groove = length(p.xy - q) - (0.03 + 0.018 * sin(fi * 0.17 + uTime));
         track = min(track, groove);
     }
 
     return max(slab, track);
 }
 
-vec3 normal(vec3 p, vec4 k) {
+vec3 normal(vec3 p) {
     vec2 e = vec2(0.0018, 0.0);
     return normalize(vec3(
-        mapScene(p + e.xyy, k) - mapScene(p - e.xyy, k),
-        mapScene(p + e.yxy, k) - mapScene(p - e.yxy, k),
-        mapScene(p + e.yyx, k) - mapScene(p - e.yyx, k)
+        mapScene(p + e.xyy) - mapScene(p - e.xyy),
+        mapScene(p + e.yxy) - mapScene(p - e.yxy),
+        mapScene(p + e.yyx) - mapScene(p - e.yyx)
     ));
 }
 
@@ -56,16 +64,14 @@ void main() {
     uv.x *= uResolution.x / uResolution.y;
 
     vec2 m = (uMouse - 0.5) * 2.0;
-    vec4 k = vec4(0.95 + m.x * 0.06, 0.7, 0.6 + m.y * 0.06, 3.48);
-
-    vec3 ro = vec3(uv * 1.25, 1.4);
+    vec3 ro = vec3(uv * 1.25 + vec2(m.x * 0.08, m.y * 0.06), 1.4);
     vec3 rd = normalize(vec3(0.0, 0.0, -1.0));
 
     float t = 0.0;
     float hit = -1.0;
     for (int i = 0; i < 70; i++) {
         vec3 p = ro + rd * t;
-        float d = mapScene(p, k);
+        float d = mapScene(p);
         if (d < 0.001) { hit = t; break; }
         t += d * 0.9;
         if (t > 3.0) break;
@@ -76,7 +82,7 @@ void main() {
 
     if (hit > 0.0) {
         vec3 p = ro + rd * hit;
-        vec3 n = normal(p, k);
+        vec3 n = normal(p);
         vec3 l = normalize(vec3(-0.4, 0.6, 0.7));
         float diff = max(dot(n, l), 0.0);
         float cavity = smoothstep(-0.02, 0.08, p.z);
@@ -88,7 +94,7 @@ void main() {
     }
 
     vec3 prev = texture(uPrevState, vUv).rgb;
-    col = mix(prev * 0.985, col, 0.17 + uDt * 0.15);
+    col = mix(prev * 0.986, col, 0.17 + uDt * 0.15);
 
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
