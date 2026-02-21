@@ -45,19 +45,28 @@ mat3 rotX(float a) {
     return mat3(1.,0.,0., 0.,c,-s, 0.,s,c);
 }
 
+void accumulateTube(inout float d, vec3 q, vec3 seed, float phase) {
+    vec3 p = seed;
+
+    for (int i = 0; i < 72; i++) {
+        p = stepAizawa(p, 0.0098);
+    }
+
+    for (int i = 0; i < 84; i++) {
+        p = stepAizawa(p, 0.0098);
+        float fi = float(i);
+        vec3 c = p * 0.275;
+        c += 0.05 * vec3(sin(fi * 0.6 + uTime + phase), cos(fi * 0.5 + phase), sin(fi * 0.4 + phase));
+        d = min(d, length(q - c) - (0.05 + 0.012 * sin(fi * 0.34 + uTime * 0.7 + phase)));
+    }
+}
+
 float mapScene(vec3 p) {
     vec3 q = rotY(uTime * 0.2) * p;
     float d = 9.0;
-    vec3 a = vec3(0.1, 0.0, 0.0);
-
-    for (int i = 0; i < 84; i++) {
-        a = stepAizawa(a, 0.0098);
-        vec3 c = a * 0.275;
-        float fi = float(i);
-        c += 0.05 * vec3(sin(fi * 0.6 + uTime), cos(fi * 0.5), sin(fi * 0.4));
-        d = min(d, length(q - c) - (0.05 + 0.012 * sin(fi * 0.34 + uTime * 0.7)));
-    }
-
+    accumulateTube(d, q, vec3(0.1, 0.02, 0.0), 0.0);
+    accumulateTube(d, q, vec3(-0.12, 0.05, 0.03), 1.7);
+    accumulateTube(d, q, vec3(0.06, -0.08, -0.01), 3.1);
     return d;
 }
 

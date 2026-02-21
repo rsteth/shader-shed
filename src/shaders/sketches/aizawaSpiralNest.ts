@@ -45,6 +45,16 @@ mat3 rotX(float a) {
     return mat3(1.,0.,0., 0.,c,-s, 0.,s,c);
 }
 
+void splatPoint(vec3 p, mat3 view, vec2 uv, inout float minD, inout float glow, inout float nearZ) {
+    vec3 q = view * (p * 0.24);
+    float iz = 1.65 / (2.6 + q.z);
+    vec2 proj = q.xy * iz;
+    float d = length(uv - proj);
+    minD = min(minD, d);
+    glow += exp(-d * 105.0) * (0.42 + 0.58 * iz);
+    nearZ = min(nearZ, q.z + d * 1.8);
+}
+
 void main() {
     vec2 uv = vUv * 2.0 - 1.0;
     uv.x *= uResolution.x / uResolution.y;
@@ -53,29 +63,36 @@ void main() {
     float spin = uTime * 0.23;
     mat3 view = rotY(spin + m.x * 0.35) * rotX(0.85 + 0.2 * sin(uTime * 0.35) + m.y * 0.2);
 
-    vec3 p = vec3(0.1, 0.0, 0.0);
+    vec3 p0 = vec3(0.1, 0.02, 0.0);
+    vec3 p1 = vec3(-0.12, 0.06, 0.04);
+    vec3 p2 = vec3(0.07, -0.09, 0.02);
+
+    for (int i = 0; i < 120; i++) {
+        p0 = stepAizawa(p0, 0.01);
+        p1 = stepAizawa(p1, 0.01);
+        p2 = stepAizawa(p2, 0.01);
+    }
+
     float minD = 9.0;
     float glow = 0.0;
     float nearZ = 99.0;
 
-    for (int i = 0; i < 260; i++) {
-        p = stepAizawa(p, 0.01);
-        vec3 q = view * (p * 0.24);
-        float iz = 1.65 / (2.6 + q.z);
-        vec2 proj = q.xy * iz;
-        float d = length(uv - proj);
-        minD = min(minD, d);
-        glow += exp(-d * 100.0) * (0.4 + 0.6 * iz);
-        nearZ = min(nearZ, q.z + d * 1.8);
+    for (int i = 0; i < 240; i++) {
+        p0 = stepAizawa(p0, 0.01);
+        p1 = stepAizawa(p1, 0.01);
+        p2 = stepAizawa(p2, 0.01);
+        splatPoint(p0, view, uv, minD, glow, nearZ);
+        splatPoint(p1, view, uv, minD, glow, nearZ);
+        splatPoint(p2, view, uv, minD, glow, nearZ);
     }
 
     vec3 bg = vec3(0.01, 0.012, 0.03) + 0.03 * vec3(uv.y + 0.2, 0.15, 0.3 + uv.x * 0.1);
-    float core = exp(-minD * 165.0);
+    float core = exp(-minD * 170.0);
     vec3 depthTint = mix(vec3(0.25, 0.95, 1.0), vec3(0.92, 0.24, 0.95), clamp((nearZ + 1.2) * 0.42, 0.0, 1.0));
-    vec3 col = bg + depthTint * (core * 1.5 + glow * 0.025);
+    vec3 col = bg + depthTint * (core * 1.5 + glow * 0.014);
 
     vec3 prev = texture(uPrevState, vUv).rgb;
-    col = mix(prev * 0.968, col, 0.22);
+    col = mix(prev * 0.969, col, 0.23);
 
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }

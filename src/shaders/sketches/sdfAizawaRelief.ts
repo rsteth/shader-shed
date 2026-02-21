@@ -34,19 +34,26 @@ vec3 stepAizawa(vec3 p, float dt) {
     return p + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }
 
-float mapScene(vec3 p) {
-    float slab = abs(p.z) - 0.12;
-
-    float track = 9.0;
-    vec3 a = vec3(0.1, 0.0, 0.0);
-    for (int i = 0; i < 96; i++) {
+void carveGrooves(inout float track, vec3 p, vec3 seed, float phase) {
+    vec3 a = seed;
+    for (int i = 0; i < 70; i++) {
         a = stepAizawa(a, 0.0098);
-        vec2 q = a.xy * 0.33;
+    }
+    for (int i = 0; i < 92; i++) {
+        a = stepAizawa(a, 0.0098);
         float fi = float(i);
-        float groove = length(p.xy - q) - (0.03 + 0.018 * sin(fi * 0.17 + uTime));
+        vec2 q = a.xy * 0.33;
+        float groove = length(p.xy - q) - (0.03 + 0.018 * sin(fi * 0.17 + uTime + phase));
         track = min(track, groove);
     }
+}
 
+float mapScene(vec3 p) {
+    float slab = abs(p.z) - 0.12;
+    float track = 9.0;
+    carveGrooves(track, p, vec3(0.1, 0.02, 0.0), 0.0);
+    carveGrooves(track, p, vec3(-0.12, 0.05, 0.02), 1.3);
+    carveGrooves(track, p, vec3(0.06, -0.08, -0.01), 2.7);
     return max(slab, track);
 }
 

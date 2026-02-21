@@ -34,25 +34,45 @@ vec3 stepAizawa(vec3 p, float dt) {
     return p + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }
 
+void accumulatePhase(vec3 p, vec2 uv, float idx, inout float nearest, inout float weave) {
+    vec2 plane = vec2(p.x, p.z) * 0.31;
+    float d = length(uv - plane);
+    nearest = min(nearest, d);
+    weave += sin((plane.x + plane.y) * 28.0 + idx * 0.24) * exp(-d * 46.0);
+}
+
 void main() {
     vec2 uv = vUv * 2.0 - 1.0;
     uv.x *= uResolution.x / uResolution.y;
 
     vec2 m = (uMouse - 0.5) * 2.0;
-    vec3 p = vec3(0.1, 0.0, m.y * 0.02);
+    vec2 uvShifted = uv + vec2(m.x * 0.03, 0.0);
+
+    vec3 p0 = vec3(0.1, 0.02, m.y * 0.02);
+    vec3 p1 = vec3(-0.11, 0.05, 0.03);
+    vec3 p2 = vec3(0.08, -0.08, -0.01);
+
+    for (int i = 0; i < 130; i++) {
+        p0 = stepAizawa(p0, 0.0098);
+        p1 = stepAizawa(p1, 0.0098);
+        p2 = stepAizawa(p2, 0.0098);
+    }
+
     float nearest = 10.0;
     float weave = 0.0;
 
-    for (int i = 0; i < 280; i++) {
-        p = stepAizawa(p, 0.0098);
-        vec2 plane = vec2(p.x, p.z) * 0.31 + vec2(m.x * 0.03, 0.0);
-        float d = length(uv - plane);
-        nearest = min(nearest, d);
-        weave += sin((plane.x + plane.y) * 28.0 + float(i) * 0.24) * exp(-d * 46.0);
+    for (int i = 0; i < 230; i++) {
+        float fi = float(i);
+        p0 = stepAizawa(p0, 0.0098);
+        p1 = stepAizawa(p1, 0.0098);
+        p2 = stepAizawa(p2, 0.0098);
+        accumulatePhase(p0, uvShifted, fi, nearest, weave);
+        accumulatePhase(p1, uvShifted, fi + 37.0, nearest, weave);
+        accumulatePhase(p2, uvShifted, fi + 74.0, nearest, weave);
     }
 
-    float lines = exp(-nearest * 132.0);
-    float lattice = 0.5 + 0.5 * sin(weave * 1.4 + uv.x * 18.0 - uTime * 0.6);
+    float lines = exp(-nearest * 136.0);
+    float lattice = 0.5 + 0.5 * sin(weave * 1.3 + uv.x * 18.0 - uTime * 0.6);
 
     vec3 bg = mix(vec3(0.05, 0.06, 0.09), vec3(0.01, 0.01, 0.03), length(uv) * 0.7);
     vec3 toneA = vec3(0.3, 0.85, 0.95);
@@ -62,7 +82,7 @@ void main() {
 
     vec2 trail = vec2(0.6 / uResolution.x, -0.3 / uResolution.y);
     vec3 prev = texture(uPrevState, vUv - trail).rgb;
-    col = mix(prev * 0.973, col, 0.215);
+    col = mix(prev * 0.974, col, 0.22);
 
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
