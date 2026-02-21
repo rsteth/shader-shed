@@ -30,6 +30,12 @@ import * as sdfMengerBloom from './sdfMengerBloom';
 import * as sdfOrbitalBlobs from './sdfOrbitalBlobs';
 import * as sdfCappedColumns from './sdfCappedColumns';
 import * as sdfKnotTunnel from './sdfKnotTunnel';
+import * as aizawaSpiralNest from './aizawaSpiralNest';
+import * as aizawaTwinOrbit from './aizawaTwinOrbit';
+import * as aizawaInkMap from './aizawaInkMap';
+import * as aizawaPhaseField from './aizawaPhaseField';
+import * as sdfAizawaFilament from './sdfAizawaFilament';
+import * as sdfAizawaRelief from './sdfAizawaRelief';
 
 export interface Sketch {
   name: string;
@@ -122,6 +128,42 @@ export const sketches: Record<string, Sketch> = {
     sim: sdfKnotTunnel.sim,
     final: sdfKnotTunnel.final,
     includeInSlideshow: false,
+  },
+  aizawaSpiralNest: {
+    name: 'Aizawa Spiral Nest',
+    description: '3D-perspective ribbon from the Aizawa strange attractor',
+    sim: aizawaSpiralNest.sim,
+    final: aizawaSpiralNest.final,
+  },
+  aizawaTwinOrbit: {
+    name: 'Aizawa Twin Orbit',
+    description: 'Mirrored attractor threads with offset parameter drift',
+    sim: aizawaTwinOrbit.sim,
+    final: aizawaTwinOrbit.final,
+  },
+  aizawaInkMap: {
+    name: 'Aizawa Ink Map',
+    description: 'Planar contour rendering inspired by inked topographic lines',
+    sim: aizawaInkMap.sim,
+    final: aizawaInkMap.final,
+  },
+  aizawaPhaseField: {
+    name: 'Aizawa Phase Field',
+    description: 'Flattened phase portrait with woven color interference',
+    sim: aizawaPhaseField.sim,
+    final: aizawaPhaseField.final,
+  },
+  sdfAizawaFilament: {
+    name: 'SDF Aizawa Filament',
+    description: 'Raymarched tubular attractor interpreted as glowing filament geometry',
+    sim: sdfAizawaFilament.sim,
+    final: sdfAizawaFilament.final,
+  },
+  sdfAizawaRelief: {
+    name: 'SDF Aizawa Relief',
+    description: 'Planar carved slab using attractor-driven signed-distance grooves',
+    sim: sdfAizawaRelief.sim,
+    final: sdfAizawaRelief.final,
   },
 };
 
