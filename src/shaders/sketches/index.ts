@@ -30,6 +30,9 @@ import * as sdfMengerBloom from './sdfMengerBloom';
 import * as sdfOrbitalBlobs from './sdfOrbitalBlobs';
 import * as sdfCappedColumns from './sdfCappedColumns';
 import * as sdfKnotTunnel from './sdfKnotTunnel';
+import * as aizawaGhostVeil from './aizawaGhostVeil';
+import * as aizawaJellyRings from './aizawaJellyRings';
+import * as aizawaSpectralBloom from './aizawaSpectralBloom';
 
 export interface Sketch {
   name: string;
@@ -122,6 +125,24 @@ export const sketches: Record<string, Sketch> = {
     sim: sdfKnotTunnel.sim,
     final: sdfKnotTunnel.final,
     includeInSlideshow: false,
+  },
+  aizawaGhostVeil: {
+    name: 'Aizawa Ghost Veil',
+    description: 'Ethereal enclosed Aizawa shells with breathing, creature-like pulses',
+    sim: aizawaGhostVeil.sim,
+    final: aizawaGhostVeil.final,
+  },
+  aizawaJellyRings: {
+    name: 'Aizawa Jelly Rings',
+    description: 'Jellyfish membrane loops and tendrils from RK4 Aizawa projections',
+    sim: aizawaJellyRings.sim,
+    final: aizawaJellyRings.final,
+  },
+  aizawaSpectralBloom: {
+    name: 'Aizawa Spectral Bloom',
+    description: 'Spectral petal fields formed by animated enclosed Aizawa trajectories',
+    sim: aizawaSpectralBloom.sim,
+    final: aizawaSpectralBloom.final,
   },
 };
 
