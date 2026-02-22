@@ -69,7 +69,7 @@ void main() {
         proj *= radialMod;
         proj += mouse * 0.12;
 
-        float d = length(uv - proj * 0.52);
+        float d = length(uv - proj * 1.04);
         petals += exp(-d * 20.0) * (0.65 + 0.35 * sin(theta * 3.0 + fi * 0.2));
         core += exp(-d * 84.0);
     }

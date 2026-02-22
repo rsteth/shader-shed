@@ -69,7 +69,7 @@ void main() {
         );
         proj += wobble * sin(fi * 0.08 + t * 0.8);
 
-        float d = length(uv - proj * 0.5);
+        float d = length(uv - proj * 1.0);
         envelope += exp(-d * 16.0) * (0.72 + 0.28 * sin(fi * 0.21 + t));
         filament += exp(-d * 70.0);
     }
