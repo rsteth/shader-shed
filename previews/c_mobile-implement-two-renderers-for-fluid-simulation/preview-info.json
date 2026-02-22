@@ -1,0 +1,4 @@
+{
+  "branch": "${GITHUB_REF_NAME}",
+  "previewUrl": "https://rsteth.github.io/shader-shed/previews/c_mobile-implement-two-renderers-for-fluid-simulation/"
+}

@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[13181,["/shader-shed/previews/c_mobile-add-automatic-shader-slideshow-pages-a9ff6756/_next/static/chunks/b7f7313e9d2bd3ba.js","/shader-shed/previews/c_mobile-add-automatic-shader-slideshow-pages-a9ff6756/_next/static/chunks/78e9c651b3f53b98.js"],"default"]
+3:I[97367,["/shader-shed/previews/c_mobile-add-automatic-shader-slideshow-pages-a9ff6756/_next/static/chunks/2f236954d6a65e12.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"buildId":"-6Vf8HxPBk8PaBZGbvN4D","rsc":["$","$1","c",{"children":[["$","$L2",null,{"asciiMode":false}],[["$","script","script-0",{"src":"/shader-shed/previews/c_mobile-add-automatic-shader-slideshow-pages-a9ff6756/_next/static/chunks/b7f7313e9d2bd3ba.js","async":true}],["$","script","script-1",{"src":"/shader-shed/previews/c_mobile-add-automatic-shader-slideshow-pages-a9ff6756/_next/static/chunks/78e9c651b3f53b98.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+5:null
