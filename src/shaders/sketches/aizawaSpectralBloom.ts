@@ -52,7 +52,7 @@ void main() {
         0.1
     );
 
-    float dt = 0.011;
+    float dt = 0.0105;
     float petals = 0.0;
     float core = 0.0;
 
@@ -69,9 +69,9 @@ void main() {
         proj *= radialMod;
         proj += mouse * 0.12;
 
-        float d = length(uv - proj * 0.35);
-        petals += exp(-d * 18.0) * (0.65 + 0.35 * sin(theta * 3.0 + fi * 0.2));
-        core += exp(-d * 62.0);
+        float d = length(uv - proj * 0.52);
+        petals += exp(-d * 20.0) * (0.65 + 0.35 * sin(theta * 3.0 + fi * 0.2));
+        core += exp(-d * 84.0);
     }
 
     petals /= 70.0;
@@ -84,10 +84,10 @@ void main() {
     );
 
     spectral *= vec3(0.95, 0.85, 1.15);
-    spectral += vec3(0.5, 0.95, 1.0) * smoothstep(0.01, 0.1, core);
+    spectral += vec3(0.36, 0.76, 0.92) * smoothstep(0.008, 0.075, core);
 
     vec3 prev = texture(uPrevState, vUv + vec2(0.0015 * sin(t), 0.0012 * cos(t * 0.7))).rgb * (0.966 - 0.07 * uDt);
-    vec3 col = max(prev, spectral * (0.62 + petals * 1.4));
+    vec3 col = max(prev, spectral * (0.58 + petals * 1.15));
 
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
@@ -104,7 +104,7 @@ uniform float uTime;
 void main() {
     vec3 c = texture(uTexture, vUv).rgb;
 
-    float chroma = sin((vUv.x - vUv.y) * 50.0 + uTime * 0.8) * 0.02;
+    float chroma = sin((vUv.x - vUv.y) * 50.0 + uTime * 0.8) * 0.012;
     c.r += chroma;
     c.b -= chroma;
 

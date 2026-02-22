@@ -54,7 +54,7 @@ void main() {
 
     float shell = 0.0;
     float tendril = 0.0;
-    float dt = 0.01;
+    float dt = 0.0098;
 
     for (int i = 0; i < 72; i++) {
         p = rk4(p, dt);
@@ -70,19 +70,19 @@ void main() {
         proj.y *= bell;
         proj += mouse * vec2(0.14, 0.09);
 
-        float d = length(uv - proj * 0.41);
-        shell += exp(-abs(d - 0.12) * 30.0);
-        tendril += exp(-d * 75.0) * smoothstep(0.2, 1.0, sin(fi * 0.37 + t * 1.3) * 0.5 + 0.5);
+        float d = length(uv - proj * 0.56);
+        shell += exp(-abs(d - 0.13) * 34.0);
+        tendril += exp(-d * 92.0) * smoothstep(0.2, 1.0, sin(fi * 0.37 + t * 1.3) * 0.5 + 0.5);
     }
 
     shell /= 72.0;
     tendril /= 72.0;
 
     vec3 membrane = mix(vec3(0.02, 0.02, 0.06), vec3(0.7, 0.25, 0.95), smoothstep(0.06, 0.42, shell));
-    membrane += vec3(0.3, 0.72, 1.0) * smoothstep(0.01, 0.1, tendril);
+    membrane += vec3(0.24, 0.62, 0.92) * smoothstep(0.008, 0.08, tendril);
 
     vec3 prev = texture(uPrevState, vUv + vec2(-0.0011, 0.0015)).rgb * (0.962 - 0.06 * uDt);
-    vec3 col = mix(prev, membrane, 0.22 + 0.5 * shell);
+    vec3 col = mix(prev, membrane, 0.25 + 0.48 * shell);
 
     fragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }
@@ -98,7 +98,7 @@ uniform float uTime;
 
 void main() {
     vec3 c = texture(uTexture, vUv).rgb;
-    float shimmer = 0.03 * sin(uTime * 3.0 + vUv.x * 40.0) + 0.03 * cos(uTime * 2.2 + vUv.y * 36.0);
+    float shimmer = 0.018 * sin(uTime * 3.0 + vUv.x * 40.0) + 0.018 * cos(uTime * 2.2 + vUv.y * 36.0);
     c += shimmer;
 
     float vignette = smoothstep(1.1, 0.24, distance(vUv, vec2(0.5, 0.52)));
