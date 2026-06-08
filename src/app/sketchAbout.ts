@@ -1,4 +1,4 @@
-import type { Sketch } from '@/shaders/sketches';
+import { sketchIds, type Sketch } from '@/shaders/sketches';
 
 export interface SketchAboutSection {
   heading: string;
@@ -27,8 +27,8 @@ $\\mathbf{x}$: normalized screen coordinate.`,
       body: 'We repeatedly update a field with an equation of the form $$S_{t+\Delta t}=F(S_t,\,\mathbf{x},\,t).$$ Tiny local changes accumulate into large patterns.',
     },
     {
-      heading: 'Important controls',
-      body: 'Watch frequency and amplitude terms like $\\omega$, $a$, and phase offsets: they shape rhythm, contrast, and spatial complexity.',
+      heading: 'What to inspect',
+      body: 'This is fallback copy for sketches without a custom explanation. Add a sketch-specific about entry for accurate geometry, constants, and feedback behavior.',
     },
   ],
 };
@@ -302,6 +302,12 @@ The shell term adds the tunnel wall.`,
     ],
   },
 };
+
+const missingSketchAboutIds = sketchIds.filter((id) => !(id in sketchAbout));
+
+if (missingSketchAboutIds.length > 0 && process.env.NODE_ENV !== 'production') {
+  console.warn(`[sketch-about] Missing custom about copy for: ${missingSketchAboutIds.join(', ')}`);
+}
 
 function buildOperatorLegend(equation: string): string[] {
   const legend: string[] = [];
