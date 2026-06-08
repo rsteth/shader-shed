@@ -1,0 +1,2 @@
+:HL["/previews/c_mobile-implement-two-renderers-for-fluid-simulation/_next/static/chunks/ab2b285940d3a405.css","style"]
+0:{"buildId":"7MRQYPDwDJ_9C8cZKf_me","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
