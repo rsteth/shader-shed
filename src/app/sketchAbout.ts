@@ -36,24 +36,25 @@ $\\mathbf{x}$: normalized screen coordinate.`,
 export const sketchAbout: Record<string, SketchAbout> = {
   ripple: {
     intro:
-      'Ripple Flow uses a feedback texture as a fluid-like height field, then advects it with curl-style motion so waves keep curling and spreading.',
+      'Ripple Flow is not a physical wave solver. It is a feedback texture that is sampled through moving fbm noise, decayed slightly, and brightened around the cursor.',
     equation:
-      `$$\\begin{aligned}\\mathbf{f}(\\mathbf{x},t)&=2\\,\\mathrm{fbm}(3\\mathbf{x}+0.1t,\\,3\\mathbf{x}+0.1t+10)-1\\\\
-\\mathbf{x}_f&=\\mathbf{x}-2\\,\\mathbf{f}\\odot\\mathbf{p},\\quad \\mathbf{p}=1/\\mathbf{R}\\\\
-S_{t+1}(\\mathbf{x})&=0.99\\,S_t(\\mathbf{x}_f)+2\\,\\mathrm{smoothstep}(0.05,0,\\lVert\\mathbf{x}-\\mathbf{m}\\rVert)
+      `$$\\begin{aligned}
+\\mathbf{f}(\\mathbf{x},t)&=2\\big(\\operatorname{fbm}(3\\mathbf{x}+0.1t),\\operatorname{fbm}(3\\mathbf{x}+0.1t+10)\\big)-1\\\\
+\\mathbf{x}'&=\\mathbf{x}-2\\mathbf{f}/\\mathbf{R}\\\\
+S_{t+1}(\\mathbf{x})&=0.99S_t(\\mathbf{x}')+2\\operatorname{smoothstep}(0.05,0,\\lVert\\mathbf{x}-\\mathbf{m}\\rVert)
 \\end{aligned}$$`,
     symbols:
-      `$\\mathbf{R}=uResolution$, $\\mathbf{m}=uMouse$.
-$S_t$: previous feedback state.
-$t$: live time uniform ($uTime$).`,
+      `$\\mathbf{R}=uResolution$ and $\\mathbf{m}=uMouse$.
+$S_t$: previous feedback texture.
+$\\mathbf{f}$: two-channel noise displacement field.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'The state behaves like a damped wave: $$h_{t+1}(\\mathbf{x})\\approx h_t(\\mathbf{x}) + c\\,\\nabla^2 h_t(\\mathbf{x}) - \\lambda h_t(\\mathbf{x}).$$ Laplacian diffusion spreads ripples while damping keeps energy bounded.',
+        body: 'Each frame looks slightly upstream in the previous frame, using a noise vector as the offset. That makes the stored brightness smear and curl while the $0.99$ multiplier slowly fades old energy.',
       },
       {
         heading: 'Key variables',
-        body: 'Look for diffusion speed $c$, damping $\\lambda$, and feedback mix $m$. Increasing $c$ broadens rings, while higher $\\lambda$ shortens their lifetime.',
+        body: 'The visible rhythm comes from noise scale $(3)$, displacement size $(2/\\mathbf{R})$, decay $(0.99)$, and cursor injection radius $(0.05)$.',
       },
     ],
   },
@@ -61,13 +62,14 @@ $t$: live time uniform ($uTime$).`,
     intro:
       'Plasma layers sinusoidal bands in different directions and frequencies, then maps the result to vivid color ramps.',
     equation:
-      `$$\\begin{aligned}v&=\\sin(10x+0.5t)+\\sin(10y+0.4t)+\\sin(10(x+y)+0.3t)\\\\
-&\\quad+\\sin(20r_c-t)+0.5\\sin(15r_m-1.5t),\\quad r_c=\\lVert\\mathbf{x}-(0.5,0.5)\\rVert,\\ r_m=\\lVert\\mathbf{x}-\\mathbf{m}\\rVert\\\\
-v_n&=(v+5)/10,\\quad C_k=0.5+0.5\\sin(2\\pi v_n+\\phi_k),\\ \phi=(0,2.094,4.188)
+      `$$\\begin{aligned}
+v&=\\sin(10x+0.5t)+\\sin(10y+0.4t)+\\sin(10(x+y)+0.3t)\\\\
+&\\quad+\\sin(20r_c-t)+0.5\\sin(15r_m-1.5t)\\\\
+v_n&=(v+5)/10,\\quad C_k=0.5+0.5\\sin(2\\pi v_n+\\phi_k)
 \\end{aligned}$$`,
     symbols:
-      `$t=uTime$ and $\\mathbf{m}=uMouse$.
-All frequencies and phase offsets are hard-coded constants from the shader.`,
+      `$r_c=\\lVert\\mathbf{x}-(0.5,0.5)\\rVert$, $r_m=\\lVert\\mathbf{x}-uMouse\\rVert$.
+$\\phi=(0,2.094,4.188)$ offsets the RGB channels.`,
     sections: [
       {
         heading: 'What is happening',
@@ -81,23 +83,25 @@ All frequencies and phase offsets are hard-coded constants from the shader.`,
   },
   gradient: {
     intro:
-      'Gradient Drift starts from smooth spatial gradients, then adds slow temporal warping so color boundaries bend like silk.',
+      'Gradient Drift builds a palette from layered fbm noise, then feeds the previous frame through a small rotating offset to create slow color trails.',
     equation:
-      `$$\\begin{aligned}n_1&=\\mathrm{fbm}(2\\mathbf{x}+0.06t),\\ n_2=\\mathrm{fbm}(2\\mathbf{x}-0.045t+100),\\ n_3=\\mathrm{fbm}(3\\mathbf{x}+(0.03t,-0.036t))\\\\
-C_b&=\\mathrm{mix}(\\mathrm{mix}(\\mathrm{mix}(c_1,c_2,n_1),c_3,n_2),c_4,0.5n_3)\\\\
-S_{t+1}&=\\mathrm{mix}(0.95S_t(\\mathbf{x}-1.5\\mathbf{d}\\odot\\mathbf{p}),C_b,0.15)+g_m(0.3,0.2,0.4)
+      `$$\\begin{aligned}
+n_1&=\\operatorname{fbm}(2\\mathbf{x}+0.06t),\\quad n_2=\\operatorname{fbm}(2\\mathbf{x}-0.045t+100)\\\\
+n_3&=\\operatorname{fbm}(3\\mathbf{x}+(0.03t,-0.036t))\\\\
+C_b&=\\operatorname{mix}(\\operatorname{mix}(\\operatorname{mix}(c_1,c_2,n_1),c_3,n_2),c_4,0.5n_3)\\\\
+S_{t+1}&=\\operatorname{mix}(0.95S_t(\\mathbf{x}-1.5\\mathbf{d}/\\mathbf{R}),C_b,0.15)+g_m(0.3,0.2,0.4)
 \\end{aligned}$$`,
     symbols:
-      `$\\mathbf{d}=\\mathrm{rotate}((1,0),6.28n_1)$, $\\mathbf{p}=1/uResolution$.
-$g_m=\\mathrm{smoothstep}(0.15,0,\\lVert\\mathbf{x}-uMouse\\rVert)$.`,
+      `$\\mathbf{d}=\\operatorname{rotate}((1,0),6.28n_1)$.
+$g_m=\\operatorname{smoothstep}(0.15,0,\\lVert\\mathbf{x}-uMouse\\rVert)$ is the cursor glow.`,
     sections: [
       {
         heading: 'What is happening',
-        body: 'Think of a warped coordinate map $$\\tilde{\\mathbf{x}}=\\mathbf{x}+\\alpha\\,\\mathbf{w}(\\mathbf{x},t),$$ where $\\mathbf{w}$ is low-frequency noise. Colors are sampled in $\\tilde{\\mathbf{x}}$-space, not raw screen space.',
+        body: 'The base image is a smooth noise-selected palette. The feedback lookup shifts by a tiny direction derived from $n_1$, so color boundaries drift without becoming a full fluid simulation.',
       },
       {
         heading: 'Key variables',
-        body: 'Warp strength $\\alpha$ and noise frequency are the stars: bigger $\\alpha$ gives dramatic folding, lower frequency gives broad cinematic motion.',
+        body: 'Noise frequencies set the size of color regions, feedback decay $(0.95)$ sets trail persistence, and the $0.15$ blend controls how quickly new palette color replaces old state.',
       },
     ],
   },
@@ -105,10 +109,11 @@ $g_m=\\mathrm{smoothstep}(0.15,0,\\lVert\\mathbf{x}-uMouse\\rVert)$.`,
     intro:
       'Voronoi Cells computes nearest animated seed points to partition space into living cellular regions.',
     equation:
-      `$$\\begin{aligned}\\mathbf{u}&=5(x\\,a,y)+(uMouse-0.5)\\cdot0.5,\\quad a=R_x/R_y\\\\
-\\mathbf{o}_i(t)&=0.5+0.4\\sin(0.5t+2\\pi\\,\\mathrm{rand}(\\mathbf{p}_i))\\\\
-d_i&=\\lVert(\\mathbf{n}_i+\\mathbf{o}_i)-\\mathrm{fract}(\\mathbf{u})\\rVert,\\quad d=\\min_i d_i\\\\
-C&=\\mathrm{mix}(0.3S_t+0.0,\\ C_{cell}(d,\\mathrm{id},t),\\ 0.85)
+      `$$\\begin{aligned}
+\\mathbf{u}&=5(xR_x/R_y,y)+(uMouse-0.5)\\cdot0.5\\\\
+\\mathbf{o}_i(t)&=0.5+0.4\\sin(0.5t+2\\pi\\operatorname{rand}(\\mathbf{p}_i))\\\\
+d_i&=\\lVert(\\mathbf{n}_i+\\mathbf{o}_i)-\\operatorname{fract}(\\mathbf{u})\\rVert,\\quad d=\\min_i d_i\\\\
+C&=\\operatorname{mix}(0.3S_t, C_{cell}(d,\\operatorname{id},t),0.85)
 \\end{aligned}$$`,
     symbols:
       `$R_x,R_y$: resolution components.
@@ -126,16 +131,18 @@ $C_{cell}$ includes the hard-coded channel oscillations $(12,15,18)$ and edge sm
   },
   eclipseWeave: {
     intro:
-      'Eclipse Weave now places the viewer between two receding planes: an earthy floor and a luminous sky ceiling, both fading into atmospheric haze at depth.',
+      'Eclipse Weave places the viewer between two receding planes: an earthy floor and a luminous sky ceiling, both fading into atmospheric haze at depth.',
     equation:
-      `$$\begin{aligned}
-\delta&=y-h,\quad z=\frac{1}{|\delta|+0.035},\quad \mathbf{w}=((x-0.5)z,\,z+0.45t)\\
-\mathbf{d}&=(\operatorname{fbm}(0.18\mathbf{w}+(0,0.08t)),\operatorname{fbm}(0.21\mathbf{w}_{yx}+(12,-0.07t)))-0.5\\
-S_{t+1}&=\operatorname{mix}(0.972S_t(\mathbf{x}-\mathbf{u}_{flow}),\,\operatorname{mix}(C_{plane},C_{fog},\operatorname{smoothstep}(2,18,z)),\,\beta)
-\end{aligned}$$`,
+      `$$\\begin{aligned}
+\\delta&=y-h,\\quad z=\\operatorname{clamp}\\left(\\frac{1}{|\\delta|+0.035},0,26\\right)\\\\
+\\mathbf{w}&=((x-0.5)z,z+0.45t)\\\\
+\\mathbf{d}&=(\\operatorname{fbm}(\\mathbf{w}(0.18,0.12)+(0,0.08t)),\\operatorname{fbm}(\\mathbf{w}_{yx}(0.12,0.21)+(12,-0.07t)))-0.5\\\\
+S_{t+1}&=\\operatorname{mix}((0.972-0.16\\Delta t)S_t(\\mathbf{x}-\\mathbf{u}_{flow}),C_{plane},\\beta)
+\\end{aligned}$$`,
     symbols:
-      `$h=0.5+0.08(uMouse_y-0.5)$ is horizon height; $\delta<0$ selects floor treatment and $\delta>0$ selects ceiling treatment.
-$C_{plane}$ blends either floor-grid/ridge shading or sky-band/cloud shading; depth $z$ increases haze through $C_{fog}$.`,
+      `$h=0.5+0.08(uMouse_y-0.5)$ is horizon height.
+$\\delta<0$ selects floor treatment; $\\delta>0$ selects ceiling treatment.
+$\\beta=0.07+0.11\\,transfer+0.08\\,depthGlow$ controls how much new plane color enters the feedback.`,
     sections: [
       {
         heading: 'What is happening',
@@ -147,8 +154,153 @@ $C_{plane}$ blends either floor-grid/ridge shading or sky-band/cloud shading; de
       },
     ],
   },
-
-
+  sdfTwistedLinks: {
+    intro:
+      'SDF Twisted Links raymarches three torus links arranged around a central core. The whole field twists around the vertical axis as height and time change.',
+    equation:
+      `$$\\begin{aligned}
+q_{xz}&=\\operatorname{rot}(0.6q_y+0.35t)p_{xz}\\\\
+d_i&=\\operatorname{sdTorus}(\\operatorname{rot}_{xz}(2.094i+0.2t)q-(0.85,0,0),(0.36,0.12))\\\\
+D(p)&=\\min\\left(\\min_i d_i,\\lVert q\\rVert-0.33\\right)
+\\end{aligned}$$`,
+    symbols:
+      `$D(p)$: signed distance field used for ray marching.
+$\\operatorname{sdTorus}(p,(R,r))$: distance to a torus with major radius $R$ and minor radius $r$.
+$q$: rotated local copy of the sample point.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'The ray advances by the current distance estimate until it gets close to the torus/core surface. A normal is estimated from nearby distance samples, then diffuse and rim lighting turn the hit into color.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'The threefold angle step $(2.094)$ spaces the links, the height twist $(0.6q_y)$ bends them into a chain-like bundle, and the feedback sample shifted by $0.6/uResolution_x$ leaves a gentle trail.',
+      },
+    ],
+  },
+  sdfGyroidPulse: {
+    intro:
+      'SDF Gyroid Pulse raymarches a spherical shell carved by a gyroid-like labyrinth, then uses the gyroid signal again to pulse the surface color.',
+    equation:
+      `$$\\begin{aligned}
+g(p)&=\\sin(p_x)\\cos(p_y)+\\sin(p_y)\\cos(p_z)+\\sin(p_z)\\cos(p_x)\\\\
+shell(p)&=\\left|\\lVert q\\rVert-1.35\\right|-0.18\\\\
+maze(p)&=\\left|g(3.4q+0.35t)\\right|/3.4-0.05\\\\
+D(p)&=\\max(shell(p),-maze(p))
+\\end{aligned}$$`,
+    symbols:
+      `$q$ is $p$ rotated in the $xz$ plane by $0.25t$.
+$D(p)$ keeps the spherical shell while cutting gyroid cavities through it.
+$pulse=0.5+0.5\\sin(7g(2.2p)+2t)$ drives the teal-to-yellow color mix.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'The shell distance defines a hollow sphere, while the negative gyroid term removes labyrinth-like channels. Raymarch hits are shaded with two lights and a Fresnel edge glow.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Shell radius $(1.35)$, shell thickness $(0.18)$, gyroid scale $(3.4)$, and carve threshold $(0.05)$ determine how dense and open the labyrinth feels.',
+      },
+    ],
+  },
+  sdfMengerBloom: {
+    intro:
+      'SDF Menger Bloom is a folded octahedral crystal shell. Despite the name, the current shader is not a boxy Menger sponge; it repeatedly sorts and folds coordinates into a faceted lattice.',
+    equation:
+      `$$\\begin{aligned}
+\\operatorname{sdOcta}(p,s)&=(|p_x|+|p_y|+|p_z|-s)/\\sqrt{3}\\\\
+p_{i+1}&=\\operatorname{rot}_{yz}(0.45+0.22i+0.06t)(2\\operatorname{foldSort}(p_i)-(1.15,0.95,0.85))\\\\
+L(p)&=\\min_i \\operatorname{sdOcta}(p_i,1.18)/2^i\\\\
+D(p)&=\\max(L(0.88q),\\left|\\lVert q\\rVert-1.55\\right|-0.2)
+\\end{aligned}$$`,
+    symbols:
+      `$\\operatorname{foldSort}$ sorts absolute coordinate magnitudes into a stable folded octant.
+$q$ is the camera-space point after slow $xz$ and $yz$ rotations.
+$D(p)$ intersects the folded lattice with a spherical shell.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'The shader folds space four times, measures octahedron distance at each scale, then clips the result to a shell. Hit points get diffuse, specular, and Fresnel lighting plus a cheap sparkle term.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Fold count $(4)$, octahedron size $(1.18)$, shell radius $(1.55)$, and shell thickness $(0.2)$ control the crystal density and silhouette.',
+      },
+    ],
+  },
+  sdfOrbitalBlobs: {
+    intro:
+      'SDF Orbital Blobs raymarches a smoothly blended cluster of six orbiting spheres plus a central sphere, producing a glossy metaball form.',
+    equation:
+      `$$\\begin{aligned}
+c_i(t)&=(\\cos\\theta_i,\\sin(1.2\\theta_i),\\sin\\theta_i)(0.9,0.45,0.9)\\\\
+r_i(t)&=0.26+0.05\\sin(2t+1.7i)\\\\
+D(p)&=\\operatorname{smin}\\left(\\operatorname{smin}_i(\\lVert p-c_i\\rVert-r_i,0.5),\\lVert p\\rVert-0.42,0.6\\right)
+\\end{aligned}$$`,
+    symbols:
+      `$\\theta_i=1.047i+t(0.4+0.03i)$.
+$\\operatorname{smin}$ blends distance fields so spheres merge instead of intersecting sharply.
+$D(p)$ is raymarched from a mouse-offset camera.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'Each sphere contributes a signed distance, and smooth-min blending fuses nearby surfaces into a single elastic blob. Normals from the blended field support diffuse, specular, and Fresnel highlights.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'The blend radii $(0.5,0.6)$ control how gooey the form is, while orbital radius, vertical scale, and animated sphere radius control the cluster motion.',
+      },
+    ],
+  },
+  sdfCappedColumns: {
+    intro:
+      'SDF Capped Columns raymarches a spiraling colonnade: capped cylinders orbit a central axis, bridge rings connect the layers, and a thin core anchors the silhouette.',
+    equation:
+      `$$\\begin{aligned}
+k&=\\left\\lfloor(q_y+1.5)/0.9\\right\\rfloor,\\quad q_{xz}=\\operatorname{rot}(0.38k+0.28t)q_{xz}\\\\
+r_k&=1.35+0.12\\sin(1.7k+0.9t)\\\\
+D(p)&=\\min(column,topCap,bottomCap,bridgeRing,core)
+\\end{aligned}$$`,
+    symbols:
+      `$column=\\operatorname{sdCappedCylinder}(local,0.45,0.16)$.
+$bridgeRing=\\operatorname{sdTorus}(bridge,(1.35,0.05))$.
+The camera orbits the structure with $ro=(2\\sin(0.17t+m_x),0.9m_y,2\\cos(0.17t+m_x))$.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'The scene distance is the minimum of columns, caps, bridge rings, and a central core. Raymarch hits are shaded like banded stone, then mixed with fog and a small feedback drift.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Layer height $(0.9)$, twist per layer $(0.38)$, column radius $(0.16)$, bridge radius $(1.35)$, and orbit speed $(0.17)$ define the colonnade shape.',
+      },
+    ],
+  },
+  sdfKnotTunnel: {
+    intro:
+      'SDF Knot Tunnel repeats paired torus rings down the ray direction, twists each cell, and adds a thin cylindrical shell to make a tunnel-like structure.',
+    equation:
+      `$$\\begin{aligned}
+q_z&=\\operatorname{mod}(p_z+2t+1.4,2.8)-1.4\\\\
+q_{xy}&=\\operatorname{rot}(0.8\\sin(0.8p_z+t))q_{xy}\\\\
+knot&=\\min(\\operatorname{sdTorus}(q,(0.75,0.11)),\\operatorname{sdTorus}(\\operatorname{rot}_{yz}(1.57)q,(0.75,0.11)))\\\\
+D(p)&=\\min(knot,\\left|\\lVert p_{xy}\\rVert-1.25\\right|-0.03)
+\\end{aligned}$$`,
+    symbols:
+      `$D(p)$ repeats every $2.8$ units along $z$.
+The two torus distances are perpendicular, creating a linked-ring cross-section.
+The shell term adds the tunnel wall.`,
+    sections: [
+      {
+        heading: 'What is happening',
+        body: 'The modulo operation makes the torus pair recur along depth. A sinusoidal rotation twists each repeated cell, while the camera looks forward through the repeating structure.',
+      },
+      {
+        heading: 'Key variables',
+        body: 'Repeat length $(2.8)$, torus radii $(0.75,0.11)$, shell radius $(1.25)$, and twist amount $(0.8)$ set the tunnel density and knot-like motion.',
+      },
+    ],
+  },
 };
 
 function buildOperatorLegend(equation: string): string[] {
@@ -164,26 +316,19 @@ function buildOperatorLegend(equation: string): string[] {
     );
   }
 
+  if (equation.includes('smin')) {
+    legend.push('$\\operatorname{smin}(a,b,k)$: smooth minimum that blends nearby signed-distance surfaces.');
+  }
+
+  if (equation.includes('sdTorus')) {
+    legend.push('$\\operatorname{sdTorus}$: signed-distance function for a torus.');
+  }
+
+  if (equation.includes('sdCappedCylinder')) {
+    legend.push('$\\operatorname{sdCappedCylinder}$: signed-distance function for a finite cylinder with flat caps.');
+  }
+
   return legend;
-}
-
-function buildVariableLegend(equation: string): string[] {
-  const definitions: Array<{ token: string; label: string }> = [
-    { token: '\\mathbf{p}', label: "$\\mathbf{p}$: working position/sample coordinate in the sketch's transformed space." },
-    { token: '\\mathbf{v}', label: '$\\mathbf{v}$: iterative warped coordinate/vector used inside harmonic loops.' },
-    { token: '\\mathbf{a}', label: '$\\mathbf{a}$: auxiliary accumulator vector used for fold/cross-product dynamics.' },
-    { token: '\\mathbf{u}', label: '$\\mathbf{u}$: normalized UV/sample coordinate used for feedback lookup.' },
-    { token: '\\mathbf{f}', label: '$\\mathbf{f}$: fragment coordinate in pixels ($vUv \\odot uResolution$).' },
-    { token: '\\mathbf{R}', label: '$\\mathbf{R}$: resolution vector ($uResolution$).' },
-    { token: '$O$', label: '$O$: accumulated radiance/color term before final tone mapping.' },
-    { token: '$z$', label: '$z$: raymarch depth/progress variable.' },
-    { token: '$d$', label: '$d$: local step size / divisor term controlling march advance and intensity.' },
-    { token: '$s$', label: '$s$: scalar shaping term (typically shell/fold strength) used by the active sketch.' },
-    { token: '$q$', label: '$q$: secondary scalar derived from local geometry for weighting.' },
-    { token: '$\\ell$', label: '$\\ell$: signed distance-like scalar used for weighting near structure boundaries.' },
-  ];
-
-  return definitions.filter(({ token }) => equation.includes(token)).map(({ label }) => label);
 }
 
 function appendLegend(base: string, items: string[]): string {
@@ -201,7 +346,7 @@ export function getSketchAbout(id: string, sketch: Sketch): SketchAbout {
       sections: defaultAbout.sections,
     };
 
-  const legendItems = [...buildOperatorLegend(about.equation), ...buildVariableLegend(about.equation)];
+  const legendItems = buildOperatorLegend(about.equation);
 
   return {
     ...about,

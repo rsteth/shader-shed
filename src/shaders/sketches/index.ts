@@ -77,7 +77,7 @@ export const sketches: Record<string, Sketch> = {
   },
   eclipseWeave: {
     name: 'Eclipse Weave',
-    description: 'Interlaced corona rings and umbral cores orbiting the cursor',
+    description: 'Earth and sky corridor fading into atmospheric haze',
     sim: eclipseWeave.sim,
     final: eclipseWeave.final,
   },
@@ -97,7 +97,7 @@ export const sketches: Record<string, Sketch> = {
   },
   sdfMengerBloom: {
     name: 'SDF Menger Bloom',
-    description: 'Fractal-inspired box lattice with blooming cavities',
+    description: 'Folded octahedral crystal shell with blooming highlights',
     sim: sdfMengerBloom.sim,
     final: sdfMengerBloom.final,
     includeInSlideshow: false,
@@ -111,7 +111,7 @@ export const sketches: Record<string, Sketch> = {
   },
   sdfCappedColumns: {
     name: 'SDF Capped Columns',
-    description: 'Repeating stone columns and arches in a raymarched hall',
+    description: 'Spiraling capped columns with floating bridge rings',
     sim: sdfCappedColumns.sim,
     final: sdfCappedColumns.final,
     includeInSlideshow: false,
