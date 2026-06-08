@@ -52,6 +52,7 @@ export interface ReglWithCaps {
 export interface CreateReglOptions {
   canvas?: HTMLCanvasElement;
   preferWebGL2?: boolean;
+  requireWebGL2?: boolean;
   attributes?: WebGLContextAttributes;
 }
 
@@ -76,6 +77,34 @@ export interface RenderTarget {
 // ============================================================================
 // Internal Helpers
 // ============================================================================
+
+type ReglWithInternalGl = ReglInstance & {
+  _gl: WebGLRenderingContext | WebGL2RenderingContext;
+};
+
+type ReglTextureWithInternalHandle = regl.Texture2D & {
+  _texture?: {
+    texture?: WebGLTexture;
+  };
+};
+
+type ReglFramebufferWithInternalHandle = regl.Framebuffer2D & {
+  _framebuffer?: {
+    framebuffer?: WebGLFramebuffer;
+  };
+};
+
+function getReglGl(reglInstance: ReglInstance): WebGLRenderingContext | WebGL2RenderingContext {
+  return (reglInstance as ReglWithInternalGl)._gl;
+}
+
+function getReglTextureHandle(reglTex: regl.Texture2D): WebGLTexture | undefined {
+  return (reglTex as ReglTextureWithInternalHandle)._texture?.texture;
+}
+
+function getReglFramebufferHandle(fbo: regl.Framebuffer2D): WebGLFramebuffer | undefined {
+  return (fbo as ReglFramebufferWithInternalHandle)._framebuffer?.framebuffer;
+}
 
 /**
  * Safely get an extension, returning null if not available.
@@ -411,6 +440,7 @@ export function createReglWithCaps(options: CreateReglOptions = {}): ReglWithCap
   const {
     canvas = document.createElement('canvas'),
     preferWebGL2 = true,
+    requireWebGL2 = false,
     attributes = {},
   } = options;
 
@@ -457,8 +487,7 @@ export function createReglWithCaps(options: CreateReglOptions = {}): ReglWithCap
   // Log context type for verification
   console.log(`[regl] Context: ${gl.constructor.name}`);
 
-  // Enforce WebGL2 if it was preferred but we got WebGL1
-  if (preferWebGL2 && !isWebGL2) {
+  if (requireWebGL2 && !isWebGL2) {
     throw new Error('WebGL2 was requested but only WebGL1 is available');
   }
 
@@ -495,10 +524,10 @@ export function createReglWithCaps(options: CreateReglOptions = {}): ReglWithCap
   });
 
   // Verify regl is using the context we provided
-  if (reglInstance._gl !== gl) {
+  if (getReglGl(reglInstance) !== gl) {
     console.warn('[regl] WARNING: regl._gl !== gl passed to constructor');
   }
-  console.log(`[regl] regl._gl: ${reglInstance._gl.constructor.name}`);
+  console.log(`[regl] regl._gl: ${getReglGl(reglInstance).constructor.name}`);
 
   // Detect capabilities AFTER regl is created (regl may have enabled extensions)
   const caps = detectCapabilities(gl, isWebGL2);
@@ -512,7 +541,8 @@ export function createReglWithCaps(options: CreateReglOptions = {}): ReglWithCap
  */
 /**
  * Reinitialize a regl texture's underlying WebGL texture to use float/half-float format.
- * This bypasses regl's extension checks for WebGL2.
+ * This is the only place texture internals should be touched; regl does not expose
+ * a public WebGL2 float reinitialization hook for this fallback ladder.
  */
 function reinitTextureAsFloat(
   gl: WebGL2RenderingContext,
@@ -522,8 +552,7 @@ function reinitTextureAsFloat(
   rtType: 'half float' | 'float',
   filter: FilterPolicy
 ): boolean {
-  // Access regl's internal texture handle
-  const rawTex = (reglTex as any)._texture?.texture;
+  const rawTex = getReglTextureHandle(reglTex);
   if (!rawTex) {
     console.warn('[render-target] Could not access regl texture internals');
     return false;
@@ -564,7 +593,7 @@ export function createRenderTarget(
 ): RenderTarget {
   const { width, height, linear = false } = options;
   const fallbackFrom: RTType[] = [];
-  const gl = reglInstance._gl;
+  const gl = getReglGl(reglInstance);
 
   // Build the ladder of types to try based on capabilities
   const typesToTry: RTType[] = [];
@@ -666,7 +695,7 @@ export function createRenderTarget(
 
       // Also check raw GL status
       if (valid) {
-        const rawFbo = (fbo as any)._framebuffer?.framebuffer;
+        const rawFbo = getReglFramebufferHandle(fbo);
         if (rawFbo) {
           gl.bindFramebuffer(gl.FRAMEBUFFER, rawFbo);
           const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);

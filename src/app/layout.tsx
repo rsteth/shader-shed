@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Shader Forge",
-  description: "Next.js + Regl Shader Scaffold",
+  title: "Shader Shed",
+  description: "Next.js + Regl shader sketch collection",
 };
 
 export default function RootLayout({
@@ -13,13 +14,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/katex@0.16.28/dist/katex.min.css"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body>{children}</body>
     </html>
   );

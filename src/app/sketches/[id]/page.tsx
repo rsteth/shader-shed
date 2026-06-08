@@ -2,22 +2,18 @@ import { notFound } from 'next/navigation';
 import ShaderCanvas from '@/components/ShaderCanvas';
 import MathText from '@/components/MathText';
 import { getSketchAbout } from '@/app/sketchAbout';
-import { sketches } from '@/shaders/sketches';
-
-const aboutEnabledSketchIds = ['eclipseWeave'] as const;
-
-type AboutSketchId = (typeof aboutEnabledSketchIds)[number];
+import { sketches, sketchIds } from '@/shaders/sketches';
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return aboutEnabledSketchIds.map((id) => ({ id }));
+  return sketchIds.map((id) => ({ id }));
 }
 
 export default async function SketchAboutPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  if (!aboutEnabledSketchIds.includes(id as AboutSketchId)) {
+  if (!sketchIds.includes(id)) {
     notFound();
   }
 

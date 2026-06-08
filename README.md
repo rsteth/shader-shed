@@ -1,10 +1,10 @@
-# Shader Forge: Next.js + Regl Scaffold
+# Shader Shed: Next.js + Regl Shader Sketches
 
-A production-ready scaffold for building high-performance, fullscreen, multipass shader systems using **Regl (WebGL2)** within **Next.js**.
+A production-ready sketch collection for building high-performance, fullscreen, multipass shader systems using **Regl** within **Next.js**.
 
 ## Features
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Graphics**: Regl (Functional WebGL wrapper)
 - **Architecture**:
   - Fullscreen multipass pipeline (Ping-Pong buffers for simulation)
@@ -112,7 +112,7 @@ repository Pages are available on GitHub Pro/Team/Enterprise plans.
 
 This system is designed to be easily ported to R3F.
 
-| Shader Forge (Current) | React Three Fiber Equivalent |
+| Shader Shed (Current) | React Three Fiber Equivalent |
 |------------------------|------------------------------|
 | `ShaderCanvas.tsx`     | `<Canvas />`                 |
 | `pipeline.ts`          | `<useFrame>` + `useFBO`      |

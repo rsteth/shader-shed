@@ -17,6 +17,29 @@ const ASCII_CELL_HEIGHT = 16;
 const ASCII_GLYPHS = ` .'\`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$`;
 const ATLAS_COLUMNS = 16;
 
+function createShaderSource(source: string, caps: Caps, stage: 'vertex' | 'fragment'): string {
+  if (caps.isWebGL2) {
+    return source;
+  }
+
+  let glsl100 = source
+    .replace(/^\s*#version\s+300\s+es\s*\n/, '')
+    .replace(/\btexture\s*\(/g, 'texture2D(');
+
+  if (stage === 'vertex') {
+    glsl100 = glsl100
+      .replace(/\bin\s+vec2\s+position\s*;/, 'attribute vec2 position;')
+      .replace(/\bout\s+vec2\s+vUv\s*;/, 'varying vec2 vUv;');
+  } else {
+    glsl100 = glsl100
+      .replace(/\bin\s+vec2\s+vUv\s*;/g, 'varying vec2 vUv;')
+      .replace(/\bout\s+vec4\s+fragColor\s*;/g, '')
+      .replace(/\bfragColor\b/g, 'gl_FragColor');
+  }
+
+  return glsl100;
+}
+
 function createAsciiGlyphAtlas(reglInstance: ReglInstance): {
   texture: regl.Texture2D;
   atlasGrid: [number, number];
@@ -138,11 +161,12 @@ export class MultipassSystem {
    * Create the simulation pass command from sketch shaders
    */
   private createSimCommand(sketch: Sketch): regl.DrawCommand {
-    const simSource = commonShader + '\n' + sketch.sim;
+    const simSource = createShaderSource(commonShader + '\n' + sketch.sim, this.caps, 'fragment');
+    const vertexSource = createShaderSource(frameVert, this.caps, 'vertex');
 
     return this.regl({
       frag: simSource,
-      vert: frameVert,
+      vert: vertexSource,
       attributes: {
         position: [[-1, -1], [1, -1], [-1, 1], [-1, 1], [1, -1], [1, 1]]
       },
@@ -162,11 +186,12 @@ export class MultipassSystem {
    * Create the final composite pass command from sketch shaders
    */
   private createFinalCommand(sketch: Sketch): regl.DrawCommand {
-    const finalSource = commonShader + '\n' + sketch.final;
+    const finalSource = createShaderSource(commonShader + '\n' + sketch.final, this.caps, 'fragment');
+    const vertexSource = createShaderSource(frameVert, this.caps, 'vertex');
 
     return this.regl({
       frag: finalSource,
-      vert: frameVert,
+      vert: vertexSource,
       attributes: {
         position: [[-1, -1], [1, -1], [-1, 1], [-1, 1], [1, -1], [1, 1]]
       },
@@ -186,9 +211,12 @@ export class MultipassSystem {
    * Create optional ASCII post-process command.
    */
   private createAsciiCommand(): regl.DrawCommand {
+    const asciiSource = createShaderSource(asciiPostFrag, this.caps, 'fragment');
+    const vertexSource = createShaderSource(frameVert, this.caps, 'vertex');
+
     return this.regl({
-      frag: asciiPostFrag,
-      vert: frameVert,
+      frag: asciiSource,
+      vert: vertexSource,
       attributes: {
         position: [[-1, -1], [1, -1], [-1, 1], [-1, 1], [1, -1], [1, 1]]
       },

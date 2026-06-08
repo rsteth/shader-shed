@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { UniformManager } from '@/lib/regl/uniforms';
 import { MultipassSystem } from '@/lib/regl/pipeline';
 import { createReglWithCaps, printCapsReport, type Caps } from '@/lib/regl/render-target';
@@ -20,16 +20,19 @@ export interface ShaderCanvasHandle {
   getCurrentSketch: () => string;
 }
 
+const MAX_DEVICE_PIXEL_RATIO = 2;
+
 const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
   mode = 'contained',
   sketch = defaultSketchId,
   asciiMode = false,
   onLoaded,
   className = '',
-  style = {},
+  style,
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
 
   // Refs to hold system instances to survive re-renders without recreation
   const systemRef = useRef<{
@@ -69,83 +72,90 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
 
-    // 1. Initialize Regl with capability detection
-    const { regl: _regl, caps } = createReglWithCaps({
-      canvas: canvasRef.current,
-      preferWebGL2: true,
-      attributes: {
-        alpha: true,
-        antialias: false,
-        stencil: false,
-        depth: false,
-        preserveDrawingBuffer: false,
-      },
-    });
+    try {
+      const container = containerRef.current;
 
-    // Print capabilities for debugging
-    printCapsReport(caps);
+      const { regl: _regl, caps } = createReglWithCaps({
+        canvas: canvasRef.current,
+        preferWebGL2: true,
+        attributes: {
+          alpha: true,
+          antialias: false,
+          stencil: false,
+          depth: false,
+          preserveDrawingBuffer: false,
+        },
+      });
 
-    // 2. Initialize System with capabilities and initial sketch
-    const uniforms = new UniformManager();
-    const pipeline = new MultipassSystem(_regl, uniforms, caps, sketch);
-    pipeline.setAsciiEnabled(asciiMode);
+      printCapsReport(caps);
 
-    // 3. Event Listeners
-    const handleMouseMove = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
-      const { innerWidth, innerHeight } = window;
-      // Normalize to 0..1
-      uniforms.setMouse(clientX / innerWidth, clientY / innerHeight);
-    };
+      const uniforms = new UniformManager();
+      const pipeline = new MultipassSystem(_regl, uniforms, caps, sketch);
+      pipeline.setAsciiEnabled(asciiMode);
 
-    if (mode !== 'contained') {
-        window.addEventListener('mousemove', handleMouseMove);
-    } else {
-        // For contained, we might want relative coordinates,
-        // but for now let's keep it simple or attach to container
-        // Attaching to window is often safer for dragging, but let's try container for 'contained'
-        containerRef.current.addEventListener('mousemove', (e) => {
-             const rect = containerRef.current!.getBoundingClientRect();
-             uniforms.setMouse(
-                (e.clientX - rect.left) / rect.width,
-                (e.clientY - rect.top) / rect.height
-             );
-        });
-    }
+      const handleWindowMouseMove = (e: MouseEvent) => {
+        const { clientX, clientY } = e;
+        const { innerWidth, innerHeight } = window;
+        uniforms.setMouse(clientX / innerWidth, clientY / innerHeight);
+      };
 
-    // 4. Resize Handling
-    const handleResize = () => {
+      const handleContainedMouseMove = (e: MouseEvent) => {
+        const rect = container.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        uniforms.setMouse(
+          (e.clientX - rect.left) / rect.width,
+          (e.clientY - rect.top) / rect.height
+        );
+      };
+
+      if (mode !== 'contained') {
+        window.addEventListener('mousemove', handleWindowMouseMove, { passive: true });
+      } else {
+        container.addEventListener('mousemove', handleContainedMouseMove, { passive: true });
+      }
+
+      let framebufferWidth = 0;
+      let framebufferHeight = 0;
+
+      const handleResize = () => {
         if (!containerRef.current || !canvasRef.current) return;
 
         const width = containerRef.current.clientWidth;
         const height = containerRef.current.clientHeight;
-        const dpr = window.devicePixelRatio || 1;
+        if (width === 0 || height === 0) return;
 
-        // Update canvas size
-        canvasRef.current.width = width * dpr;
-        canvasRef.current.height = height * dpr;
+        const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, MAX_DEVICE_PIXEL_RATIO));
+        const nextFramebufferWidth = Math.round(width * dpr);
+        const nextFramebufferHeight = Math.round(height * dpr);
 
-        // Update styling to match display size
-        // canvasRef.current.style.width = `${width}px`;
-        // canvasRef.current.style.height = `${height}px`;
+        if (
+          nextFramebufferWidth === framebufferWidth &&
+          nextFramebufferHeight === framebufferHeight
+        ) {
+          return;
+        }
 
-        // Update system
-        _regl.poll(); // Update viewport
-        pipeline.resize(width * dpr, height * dpr);
-    };
+        framebufferWidth = nextFramebufferWidth;
+        framebufferHeight = nextFramebufferHeight;
 
-    const observer = new ResizeObserver(handleResize);
-    observer.observe(containerRef.current);
+        canvasRef.current.width = framebufferWidth;
+        canvasRef.current.height = framebufferHeight;
 
-    // Initial resize
-    handleResize();
+        _regl.poll();
+        pipeline.resize(framebufferWidth, framebufferHeight);
+      };
 
-    // 5. Render Loop
-    let disposed = false;
-    let lastTime = performance.now();
-    let currentRafId = 0;
+      const observer = new ResizeObserver(handleResize);
+      observer.observe(container);
 
-    const loop = () => {
+      handleResize();
+
+      let disposed = false;
+      let lastTime = performance.now();
+      let currentRafId = 0;
+
+      const loop = () => {
         if (disposed) return;
 
         const now = performance.now();
@@ -158,24 +168,23 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
         pipeline.render();
 
         currentRafId = requestAnimationFrame(loop);
-    };
+      };
 
-    currentRafId = requestAnimationFrame(loop);
+      currentRafId = requestAnimationFrame(loop);
 
-    // Store refs
-    systemRef.current = {
+      systemRef.current = {
         regl: _regl,
         uniforms,
         pipeline,
         caps,
         rafId: currentRafId,
         observer
-    };
+      };
 
-    if (onLoaded) onLoaded();
+      setRenderError(null);
+      onLoaded?.();
 
-    return () => {
-        // Cleanup
+      return () => {
         disposed = true;
         cancelAnimationFrame(currentRafId);
         observer.disconnect();
@@ -183,11 +192,18 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
         _regl.destroy();
 
         if (mode !== 'contained') {
-            window.removeEventListener('mousemove', handleMouseMove);
+          window.removeEventListener('mousemove', handleWindowMouseMove);
+        } else {
+          container.removeEventListener('mousemove', handleContainedMouseMove);
         }
 
         systemRef.current = null;
-    };
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to initialize the shader renderer.';
+      setRenderError(message);
+      console.error('[shader-canvas] Renderer initialization failed:', error);
+    }
   }, []);
 
   // Layout styles
@@ -201,8 +217,8 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
               left: 0,
               width: '100vw',
               height: '100vh',
-              zIndex: -1,
-              pointerEvents: 'none'
+              zIndex: renderError ? 0 : -1,
+              pointerEvents: renderError ? 'auto' : 'none'
           };
       }
       if (mode === 'overlay') {
@@ -233,6 +249,17 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
         ref={canvasRef}
         style={{ width: '100%', height: '100%', display: 'block' }}
       />
+      {renderError && (
+        <div
+          role="status"
+          className="absolute inset-0 grid place-items-center bg-black px-6 text-center text-sm text-zinc-200"
+        >
+          <div className="max-w-sm rounded-lg border border-white/15 bg-zinc-950/90 p-4 shadow-2xl">
+            <p className="font-semibold text-white">Shader renderer unavailable</p>
+            <p className="mt-2 text-zinc-300">{renderError}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
