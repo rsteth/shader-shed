@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 1,
+  "application": "shader-shed",
+  "reviewedRevision": "0ab8fd643f4a2c71ba6e26cbac90473438c9e7d2",
+  "items": [
+    {
+      "id": "selector",
+      "title": "Sketch selector",
+      "kind": "component",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "selector"
+      ],
+      "states": [
+        "selector"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "ascii",
+      "title": "ASCII canvas",
+      "kind": "screen",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "ascii"
+      ],
+      "states": [
+        "ascii"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "about",
+      "title": "About, equation and content cards",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "about"
+      ],
+      "states": [
+        "about"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "slideshow",
+      "title": "Automatic slideshow",
+      "kind": "screen",
+      "source": [
+        "src/components/SlideshowCanvas.tsx"
+      ],
+      "fixtures": [
+        "slideshow"
+      ],
+      "states": [
+        "slideshow"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "slideshow-ascii",
+      "title": "ASCII automatic slideshow",
+      "kind": "screen",
+      "source": [
+        "src/components/SlideshowCanvas.tsx"
+      ],
+      "fixtures": [
+        "slideshow-ascii"
+      ],
+      "states": [
+        "slideshow-ascii"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "ripple",
+      "title": "ripple \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "ripple"
+      ],
+      "states": [
+        "ripple"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "plasma",
+      "title": "plasma \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "plasma"
+      ],
+      "states": [
+        "plasma"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "gradient",
+      "title": "gradient \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "gradient"
+      ],
+      "states": [
+        "gradient"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "voronoi",
+      "title": "voronoi \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "voronoi"
+      ],
+      "states": [
+        "voronoi"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "eclipse-weave",
+      "title": "eclipseWeave \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "eclipse-weave"
+      ],
+      "states": [
+        "eclipse-weave"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "sdf-twisted-links",
+      "title": "sdfTwistedLinks \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "sdf-twisted-links"
+      ],
+      "states": [
+        "sdf-twisted-links"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "sdf-gyroid-pulse",
+      "title": "sdfGyroidPulse \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "sdf-gyroid-pulse"
+      ],
+      "states": [
+        "sdf-gyroid-pulse"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "sdf-menger-bloom",
+      "title": "sdfMengerBloom \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "sdf-menger-bloom"
+      ],
+      "states": [
+        "sdf-menger-bloom"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "sdf-orbital-blobs",
+      "title": "sdfOrbitalBlobs \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "sdf-orbital-blobs"
+      ],
+      "states": [
+        "sdf-orbital-blobs"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "sdf-capped-columns",
+      "title": "sdfCappedColumns \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "sdf-capped-columns"
+      ],
+      "states": [
+        "sdf-capped-columns"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "sdf-knot-tunnel",
+      "title": "sdfKnotTunnel \u00b7 About",
+      "kind": "pattern",
+      "source": [
+        "src/app/page.tsx",
+        "src/components/ShaderCanvas.tsx",
+        "src/app/sketchAbout.ts",
+        "src/components/MathText.tsx"
+      ],
+      "fixtures": [
+        "sdf-knot-tunnel"
+      ],
+      "states": [
+        "sdf-knot-tunnel"
+      ],
+      "coverage": "covered",
+      "notes": "Actual source fixture loaded on desktop/mobile directly and in allow-scripts-only iframe. Native dark only; GPU output remains hardware-dependent."
+    },
+    {
+      "id": "direct-sketch-routes",
+      "title": "Dedicated sketch article routes",
+      "kind": "screen",
+      "source": [
+        "src/app/sketches/[id]/page.tsx"
+      ],
+      "fixtures": [],
+      "states": [
+        "11 static sketch routes"
+      ],
+      "coverage": "excluded",
+      "notes": "The same equations and explanatory source content are represented in all 11 sketch About fixtures. Dedicated article route layout is not separately exposed by this preview server."
+    }
+  ],
+  "checks": [
+    {
+      "id": "source-integrity",
+      "label": "Production source integrity",
+      "command": "node design/check.mjs",
+      "status": "passed",
+      "scope": "All hashed production source files and source/fixture references"
+    },
+    {
+      "id": "app-gates",
+      "label": "Existing application gates",
+      "command": "npm run build && npm run lint && npx tsc --noEmit",
+      "status": "passed",
+      "scope": "Existing production application, not a GPU performance claim"
+    },
+    {
+      "id": "interactions",
+      "label": "Sandbox keyboard, repetition, reset and server boundary",
+      "command": "node design/interactions.mjs",
+      "status": "passed",
+      "scope": "Real controls under sandbox allow-scripts; native Cloud worker fallback retained"
+    },
+    {
+      "id": "browser-matrix",
+      "label": "Desktop/mobile direct and strict sandbox sweep",
+      "command": "node design/qa.mjs",
+      "status": "passed",
+      "scope": "64 observations: fixture readiness, canvas presence, page errors; source-native fallback is retained",
+      "evidence": "design/browser-results.json"
+    },
+    {
+      "id": "theme-handshake",
+      "label": "Native dark nonce handshake",
+      "command": "node design/theme-qa.mjs",
+      "status": "passed",
+      "scope": "Final canonical adapter protocol confirmation"
+    }
+  ]
+}

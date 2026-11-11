@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "id": "shader-shed",
+  "title": "Shader Shed",
+  "kind": "app",
+  "renderer": "react",
+  "summary": "Local-only catalog of actual application routes and controls. No re-created UI.",
+  "tokens": "tokens.json",
+  "inventory": "inventory.json",
+  "themes": [
+    "dark"
+  ],
+  "source": {
+    "repository": "https://github.com/rsteth/shader-shed",
+    "revision": "0ab8fd643f4a2c71ba6e26cbac90473438c9e7d2",
+    "path": "."
+  },
+  "provenance": {
+    "status": "author-owned",
+    "sources": []
+  },
+  "license": {
+    "spdx": "UNLICENSED",
+    "note": "Local inspection only. Preserve sketch attribution; no license grant inferred."
+  },
+  "fixtures": [
+    {
+      "id": "selector",
+      "title": "Sketch selector",
+      "section": "components",
+      "url": "http://127.0.0.1:8795/?fixture=",
+      "scenario": {
+        "page": "/",
+        "state": "selector",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "ascii",
+      "title": "ASCII canvas",
+      "section": "screens",
+      "url": "http://127.0.0.1:8795/?fixture=ascii",
+      "scenario": {
+        "page": "/",
+        "state": "ascii",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "about",
+      "title": "About, equation and content cards",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=about",
+      "scenario": {
+        "page": "/",
+        "state": "about",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "slideshow",
+      "title": "Automatic slideshow",
+      "section": "screens",
+      "url": "http://127.0.0.1:8795/slideshow/?fixture=",
+      "scenario": {
+        "page": "/slideshow/",
+        "state": "slideshow",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "slideshow-ascii",
+      "title": "ASCII automatic slideshow",
+      "section": "screens",
+      "url": "http://127.0.0.1:8795/slideshow-ascii/?fixture=",
+      "scenario": {
+        "page": "/slideshow-ascii/",
+        "state": "slideshow-ascii",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "ripple",
+      "title": "ripple \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=ripple",
+      "scenario": {
+        "page": "/",
+        "state": "ripple",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "plasma",
+      "title": "plasma \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=plasma",
+      "scenario": {
+        "page": "/",
+        "state": "plasma",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "gradient",
+      "title": "gradient \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=gradient",
+      "scenario": {
+        "page": "/",
+        "state": "gradient",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "voronoi",
+      "title": "voronoi \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=voronoi",
+      "scenario": {
+        "page": "/",
+        "state": "voronoi",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "eclipse-weave",
+      "title": "eclipseWeave \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=eclipseWeave",
+      "scenario": {
+        "page": "/",
+        "state": "eclipse-weave",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "sdf-twisted-links",
+      "title": "sdfTwistedLinks \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=sdfTwistedLinks",
+      "scenario": {
+        "page": "/",
+        "state": "sdf-twisted-links",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "sdf-gyroid-pulse",
+      "title": "sdfGyroidPulse \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=sdfGyroidPulse",
+      "scenario": {
+        "page": "/",
+        "state": "sdf-gyroid-pulse",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "sdf-menger-bloom",
+      "title": "sdfMengerBloom \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=sdfMengerBloom",
+      "scenario": {
+        "page": "/",
+        "state": "sdf-menger-bloom",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "sdf-orbital-blobs",
+      "title": "sdfOrbitalBlobs \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=sdfOrbitalBlobs",
+      "scenario": {
+        "page": "/",
+        "state": "sdf-orbital-blobs",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "sdf-capped-columns",
+      "title": "sdfCappedColumns \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=sdfCappedColumns",
+      "scenario": {
+        "page": "/",
+        "state": "sdf-capped-columns",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    },
+    {
+      "id": "sdf-knot-tunnel",
+      "title": "sdfKnotTunnel \u00b7 About",
+      "section": "patterns",
+      "url": "http://127.0.0.1:8795/?fixture=sdfKnotTunnel",
+      "scenario": {
+        "page": "/",
+        "state": "sdf-knot-tunnel",
+        "setup": "source-controls",
+        "network": "none"
+      },
+      "description": "Actual production source. Native dark appearance. Reload resets state; GPU rendering remains hardware-dependent."
+    }
+  ]
+}
