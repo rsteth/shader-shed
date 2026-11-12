@@ -1,0 +1,2 @@
+:HL["/shader-shed/previews/c_mobile-set-up-github-ci-cd-pipeline/_next/static/chunks/ab2b285940d3a405.css","style"]
+0:{"buildId":"XfFyT413qnP2G8TEo606A","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}

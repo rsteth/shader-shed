@@ -1,0 +1,3 @@
+:HL["/shader-shed/_next/static/css/6aced5a9e5524d11.css","style"]
+:HL["/shader-shed/_next/static/css/9c56765a085d2cb3.css","style"]
+0:{"buildId":"sj2Stp8t5RLw4_fGF3BZ_","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"sketches","paramType":null,"paramKey":"sketches","hasRuntimePrefetch":false,"slots":{"children":{"name":"id","paramType":"d","paramKey":"voronoi","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
