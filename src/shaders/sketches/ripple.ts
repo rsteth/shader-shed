@@ -1,6 +1,6 @@
 /**
  * RIPPLE FLOW SKETCH
- * Interactive fluid ripples with curl noise displacement
+ * A feedback image smeared along drifting noise, with light added at the pointer
  */
 
 export const sim = /* glsl */ `
@@ -20,14 +20,14 @@ void main() {
     // Read previous state
     vec4 old = texture(uPrevState, st);
 
-    // Simple diffusion / decay
+    // Fade: keep 99% per frame
     float decay = 0.99;
 
-    // Interactive ripple at mouse position
+    // Light added around the pointer
     float dist = distance(st, uMouse);
     float ripple = smoothstep(0.05, 0.0, dist) * 2.0;
 
-    // Fluid-like curl noise displacement
+    // Two independent noise channels act as a wind direction (not a true curl field)
     vec2 flow = vec2(
         fbm(st * 3.0 + uTime * 0.1),
         fbm(st * 3.0 + uTime * 0.1 + 10.0)

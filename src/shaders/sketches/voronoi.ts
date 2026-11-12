@@ -73,9 +73,9 @@ void main() {
     color.g = sin(cellId * 15.0 + t * 0.2 + 2.0) * 0.5 + 0.5;
     color.b = sin(cellId * 18.0 + t * 0.4 + 4.0) * 0.5 + 0.5;
 
-    // Edge highlight
-    float edge = 1.0 - smoothstep(0.0, 0.05, dist);
-    color = mix(color, vec3(1.0), edge * 0.8);
+    // White dot at each seed (dist is the distance to the nearest seed, so this is not a cell edge)
+    float seedDot = 1.0 - smoothstep(0.0, 0.05, dist);
+    color = mix(color, vec3(1.0), seedDot * 0.8);
 
     // Distance-based darkening
     color *= 0.6 + 0.4 * (1.0 - dist);

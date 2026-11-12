@@ -1,6 +1,7 @@
 import katex from 'katex';
 
 interface MathTextProps {
+  /** Prose with $inline$ and $$display$$ TeX. */
   text: string;
   className?: string;
 }
@@ -8,33 +9,47 @@ interface MathTextProps {
 const blockRegex = /\$\$([\s\S]+?)\$\$/g;
 const inlineRegex = /\$([^$\n]+?)\$/g;
 
-function renderInlineMath(text: string): string {
-  const escaped = text
+function escapeHtml(text: string): string {
+  return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
 
-  return escaped.replace(inlineRegex, (_match, expression) =>
-    katex.renderToString(expression.trim(), {
+/**
+ * Escape the prose and render the $...$ spans. The TeX itself must reach KaTeX
+ * unescaped, or a prime or a comparison sign in a formula turns into an HTML entity.
+ */
+function renderInlineMath(text: string): string {
+  let html = '';
+  let last = 0;
+
+  for (const match of text.matchAll(inlineRegex)) {
+    const start = match.index ?? 0;
+    html += escapeHtml(text.slice(last, start));
+    html += katex.renderToString(match[1].trim(), {
       throwOnError: false,
       displayMode: false,
-    })
-  );
+    });
+    last = start + match[0].length;
+  }
+
+  return html + escapeHtml(text.slice(last));
 }
 
 export default function MathText({ text, className }: MathTextProps) {
   const parts: Array<{ type: 'text' | 'block'; value: string }> = [];
   let last = 0;
-  let match: RegExpExecArray | null;
 
-  while ((match = blockRegex.exec(text)) !== null) {
-    if (match.index > last) {
-      parts.push({ type: 'text', value: text.slice(last, match.index) });
+  for (const match of text.matchAll(blockRegex)) {
+    const start = match.index ?? 0;
+    if (start > last) {
+      parts.push({ type: 'text', value: text.slice(last, start) });
     }
     parts.push({ type: 'block', value: match[1] });
-    last = match.index + match[0].length;
+    last = start + match[0].length;
   }
 
   if (last < text.length) {
@@ -50,9 +65,11 @@ export default function MathText({ text, className }: MathTextProps) {
               key={`block-${index}`}
               className="my-2 overflow-x-auto"
               dangerouslySetInnerHTML={{
+                // fleqn: left-aligned, so a long equation starts at the margin instead of being centred off-screen
                 __html: katex.renderToString(part.value.trim(), {
                   throwOnError: false,
                   displayMode: true,
+                  fleqn: true,
                 }),
               }}
             />

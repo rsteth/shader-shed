@@ -1,6 +1,7 @@
 import regl from 'regl';
 import { UniformManager } from './uniforms';
 import { createRenderTarget, type Caps, type RenderTarget } from './render-target';
+import { createSketchTextures, type SketchTextureSet } from './textures';
 
 // Importing common shader utilities
 import commonShader from '@/shaders/common.glsl';
@@ -38,6 +39,28 @@ function createShaderSource(source: string, caps: Caps, stage: 'vertex' | 'fragm
   }
 
   return glsl100;
+}
+
+/**
+ * Turn a sketch's `defines` into a `#define` block. Numbers are always written as
+ * floats so `ROWS: 18` can be used in float expressions without a cast.
+ */
+function createDefineBlock(defines: Sketch['defines']): string {
+  return Object.entries(defines ?? {})
+    .filter(([, value]) => value !== false)
+    .map(([key, value]) => {
+      if (value === true) return `#define ${key}`;
+      if (typeof value === 'number') {
+        return `#define ${key} ${Number.isInteger(value) ? value.toFixed(1) : String(value)}`;
+      }
+      return `#define ${key} ${value}`;
+    })
+    .join('\n');
+}
+
+/** common.glsl + the sketch's defines + the sketch's own source. */
+function composeFragmentSource(body: string, sketch: Sketch): string {
+  return [commonShader, createDefineBlock(sketch.defines), body].join('\n');
 }
 
 function createAsciiGlyphAtlas(reglInstance: ReglInstance): {
@@ -108,6 +131,7 @@ export class MultipassSystem {
 
   // Current sketch
   currentSketchId: string;
+  sketchTextures: SketchTextureSet;
 
   // Internal state
   tickCount: number = 0;
@@ -152,16 +176,44 @@ export class MultipassSystem {
 
     // Compile initial commands
     const sketch = getSketch(initialSketchId);
+    this.sketchTextures = createSketchTextures(reglInstance, sketch.textures);
     this.cmdSim = this.createSimCommand(sketch);
     this.cmdFinal = this.createFinalCommand(sketch);
     this.cmdAscii = this.createAsciiCommand();
   }
 
   /**
+   * Uniforms every sketch shader can declare, in both passes: time, resolution,
+   * pointer, scroll, whether the ASCII pass is on, and the sketch's own textures.
+   * A shader only pays for the ones it declares.
+   */
+  private createInputUniforms(): Record<string, any> {
+    const textureSet = this.sketchTextures;
+    const uniforms: Record<string, any> = {
+      uTime: () => this.uniforms.state.uTime,
+      uDt: () => this.uniforms.state.uDt,
+      uResolution: () => this.uniforms.state.uResolution,
+      uMouse: () => this.uniforms.state.uMouse,
+      uMouseVelocity: () => this.uniforms.state.uMouseVelocity,
+      uMouseActive: () => this.uniforms.state.uMouseActive,
+      uScroll: () => this.uniforms.state.uScroll,
+      uScrollVelocity: () => this.uniforms.state.uScrollVelocity,
+      uAscii: () => (this.asciiEnabled ? 1 : 0),
+    };
+
+    for (const name of Object.keys(textureSet.textures)) {
+      uniforms[name] = () => textureSet.textures[name].texture;
+      uniforms[`${name}Size`] = () => textureSet.textures[name].size;
+    }
+
+    return uniforms;
+  }
+
+  /**
    * Create the simulation pass command from sketch shaders
    */
   private createSimCommand(sketch: Sketch): regl.DrawCommand {
-    const simSource = createShaderSource(commonShader + '\n' + sketch.sim, this.caps, 'fragment');
+    const simSource = createShaderSource(composeFragmentSource(sketch.sim, sketch), this.caps, 'fragment');
     const vertexSource = createShaderSource(frameVert, this.caps, 'vertex');
 
     return this.regl({
@@ -172,11 +224,8 @@ export class MultipassSystem {
       },
       count: 6,
       uniforms: {
+        ...this.createInputUniforms(),
         uPrevState: this.regl.prop<any, any>('inputTexture'),
-        uTime: () => this.uniforms.state.uTime,
-        uResolution: () => this.uniforms.state.uResolution,
-        uMouse: () => this.uniforms.state.uMouse,
-        uDt: () => this.uniforms.state.uDt
       },
       framebuffer: this.regl.prop<any, any>('outputFbo')
     });
@@ -186,7 +235,7 @@ export class MultipassSystem {
    * Create the final composite pass command from sketch shaders
    */
   private createFinalCommand(sketch: Sketch): regl.DrawCommand {
-    const finalSource = createShaderSource(commonShader + '\n' + sketch.final, this.caps, 'fragment');
+    const finalSource = createShaderSource(composeFragmentSource(sketch.final, sketch), this.caps, 'fragment');
     const vertexSource = createShaderSource(frameVert, this.caps, 'vertex');
 
     return this.regl({
@@ -197,10 +246,9 @@ export class MultipassSystem {
       },
       count: 6,
       uniforms: {
+        ...this.createInputUniforms(),
         uTexture: this.regl.prop<any, any>('inputTexture'),
-        uTime: () => this.uniforms.state.uTime,
         uOpacity: () => this.uniforms.state.uOpacity,
-        uResolution: () => this.uniforms.state.uResolution
       },
       framebuffer: this.regl.prop<any, any>('outputFbo'),
       depth: { enable: false }
@@ -244,10 +292,13 @@ export class MultipassSystem {
     const sketch = getSketch(sketchId);
     console.log(`[pipeline] Switching to sketch: ${sketch.name}`);
 
-    // Recompile commands
+    // Swap texture inputs, then recompile commands against the new set
+    const previousTextures = this.sketchTextures;
+    this.sketchTextures = createSketchTextures(this.regl, sketch.textures);
     this.cmdSim = this.createSimCommand(sketch);
     this.cmdFinal = this.createFinalCommand(sketch);
     this.currentSketchId = sketchId;
+    previousTextures.destroy();
 
     // Clear render targets to avoid ghosting from previous sketch
     this.clearTargets();
@@ -308,5 +359,6 @@ export class MultipassSystem {
     this.rt2.destroy();
     this.postRt.destroy();
     this.asciiGlyphAtlas.destroy();
+    this.sketchTextures.destroy();
   }
 }

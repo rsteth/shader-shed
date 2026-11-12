@@ -25,7 +25,7 @@ export default function SlideshowCanvas({ asciiMode = false }: SlideshowCanvasPr
   }, [ids]);
 
   return (
-    <main className="relative min-h-screen">
+    <main className="relative h-[100dvh] overflow-hidden">
       <ShaderCanvas mode="background" sketch={ids[index]} asciiMode={asciiMode} />
     </main>
   );

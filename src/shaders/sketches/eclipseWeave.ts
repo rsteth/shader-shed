@@ -78,7 +78,8 @@ uniform float uTime;
 void main() {
     vec3 color = texture(uTexture, vUv).rgb;
 
-    float grain = fract(sin(dot(vUv + uTime * 0.001, vec2(12.9898, 78.233))) * 43758.5453);
+    // Film grain: a fresh random value per pixel, 60 times a second (the pattern repeats every ~4s).
+    float grain = random(floor(gl_FragCoord.xy) + floor(mod(uTime * 60.0, 256.0)) * vec2(37.0, 91.0));
     color += (grain - 0.5) * 0.012;
 
     float vignette = smoothstep(0.98, 0.16, distance(vUv, vec2(0.5, 0.53)));

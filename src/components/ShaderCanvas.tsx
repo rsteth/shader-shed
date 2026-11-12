@@ -6,10 +6,24 @@ import { MultipassSystem } from '@/lib/regl/pipeline';
 import { createReglWithCaps, printCapsReport, type Caps } from '@/lib/regl/render-target';
 import { defaultSketchId } from '@/shaders/sketches';
 
+/**
+ * What uScroll measures:
+ * - 'page'     progress through the whole document (0 at the top, 1 at the bottom)
+ * - 'element'  this canvas' trip through the viewport (0 as its top edge enters at the
+ *              bottom, 0.5 when it is centred, 1 as its bottom edge leaves at the top)
+ * - 'autoplay' no scrolling involved: eases 0 -> 1 -> 0 on a 16 second loop, for
+ *              previewing scroll-driven sketches on pages that cannot scroll
+ */
+export type ScrollSource = 'page' | 'element' | 'autoplay';
+
+const AUTOPLAY_SCROLL_SECONDS = 16;
+
 interface ShaderCanvasProps {
   mode?: 'background' | 'overlay' | 'contained';
   sketch?: string;
   asciiMode?: boolean;
+  /** Defaults to 'element' for contained canvases and 'page' otherwise. */
+  scrollSource?: ScrollSource;
   onLoaded?: () => void;
   className?: string;
   style?: React.CSSProperties;
@@ -26,12 +40,19 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
   mode = 'contained',
   sketch = defaultSketchId,
   asciiMode = false,
+  scrollSource,
   onLoaded,
   className = '',
   style,
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // Read through a ref so the render loop sees prop changes without being rebuilt.
+  const resolvedScrollSource: ScrollSource = scrollSource ?? (mode === 'contained' ? 'element' : 'page');
+  const scrollSourceRef = useRef<ScrollSource>(resolvedScrollSource);
+  useEffect(() => {
+    scrollSourceRef.current = resolvedScrollSource;
+  }, [resolvedScrollSource]);
   const [renderError, setRenderError] = useState<string | null>(null);
 
   // Refs to hold system instances to survive re-renders without recreation
@@ -93,27 +114,60 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
       const pipeline = new MultipassSystem(_regl, uniforms, caps, sketch);
       pipeline.setAsciiEnabled(asciiMode);
 
-      const handleWindowMouseMove = (e: MouseEvent) => {
-        const { clientX, clientY } = e;
-        const { innerWidth, innerHeight } = window;
-        uniforms.setMouse(clientX / innerWidth, clientY / innerHeight);
-      };
+      // Pointer: the whole window for background/overlay canvases, the container otherwise.
+      // Pointer events cover mouse, pen and touch with one set of listeners.
+      const pointerTarget: HTMLElement | Window = mode === 'contained' ? container : window;
 
-      const handleContainedMouseMove = (e: MouseEvent) => {
+      const handlePointerMove = (event: Event) => {
+        const e = event as PointerEvent;
+        if (mode !== 'contained') {
+          uniforms.setMouse(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
+          return;
+        }
         const rect = container.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
-
-        uniforms.setMouse(
-          (e.clientX - rect.left) / rect.width,
-          (e.clientY - rect.top) / rect.height
-        );
+        uniforms.setMouse((e.clientX - rect.left) / rect.width, (e.clientY - rect.top) / rect.height);
       };
 
-      if (mode !== 'contained') {
-        window.addEventListener('mousemove', handleWindowMouseMove, { passive: true });
+      const handlePointerGone = () => uniforms.setMouseActive(false);
+
+      // A lifted finger is gone; a released mouse button is still hovering.
+      const handlePointerUp = (event: Event) => {
+        if ((event as PointerEvent).pointerType !== 'mouse') uniforms.setMouseActive(false);
+      };
+
+      pointerTarget.addEventListener('pointermove', handlePointerMove, { passive: true });
+      pointerTarget.addEventListener('pointerdown', handlePointerMove, { passive: true });
+      pointerTarget.addEventListener('pointerup', handlePointerUp, { passive: true });
+      pointerTarget.addEventListener('pointercancel', handlePointerGone, { passive: true });
+      if (mode === 'contained') {
+        container.addEventListener('pointerleave', handlePointerGone, { passive: true });
       } else {
-        container.addEventListener('mousemove', handleContainedMouseMove, { passive: true });
+        document.documentElement.addEventListener('pointerleave', handlePointerGone, { passive: true });
+        window.addEventListener('blur', handlePointerGone);
       }
+
+      // Scroll is sampled once per frame rather than on scroll events, so it also
+      // tracks layout changes and needs no listener of its own.
+      const sampleScroll = () => {
+        const viewport = window.innerHeight || 1;
+        const source = scrollSourceRef.current;
+        let progress = 0;
+
+        if (source === 'autoplay') {
+          const loop = (uniforms.state.uTime / AUTOPLAY_SCROLL_SECONDS) % 1;
+          const linear = 1 - Math.abs(loop * 2 - 1);
+          progress = linear * linear * (3 - 2 * linear);
+        } else if (source === 'element') {
+          const rect = container.getBoundingClientRect();
+          progress = (viewport - rect.top) / (viewport + rect.height);
+        } else {
+          const range = document.documentElement.scrollHeight - viewport;
+          progress = range > 0 ? window.scrollY / range : 0;
+        }
+
+        uniforms.setScroll(progress, window.scrollY / viewport);
+      };
 
       let framebufferWidth = 0;
       let framebufferHeight = 0;
@@ -159,9 +213,11 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
         if (disposed) return;
 
         const now = performance.now();
-        const dt = (now - lastTime) / 1000;
+        // Clamp so a backgrounded tab does not come back with one giant time step.
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
         lastTime = now;
 
+        sampleScroll();
         uniforms.update(dt);
 
         _regl.clear({ color: [0, 0, 0, 0], depth: 1 });
@@ -191,10 +247,15 @@ const ShaderCanvas = forwardRef<ShaderCanvasHandle, ShaderCanvasProps>(({
         pipeline.dispose();
         _regl.destroy();
 
-        if (mode !== 'contained') {
-          window.removeEventListener('mousemove', handleWindowMouseMove);
+        pointerTarget.removeEventListener('pointermove', handlePointerMove);
+        pointerTarget.removeEventListener('pointerdown', handlePointerMove);
+        pointerTarget.removeEventListener('pointerup', handlePointerUp);
+        pointerTarget.removeEventListener('pointercancel', handlePointerGone);
+        if (mode === 'contained') {
+          container.removeEventListener('pointerleave', handlePointerGone);
         } else {
-          container.removeEventListener('mousemove', handleContainedMouseMove);
+          document.documentElement.removeEventListener('pointerleave', handlePointerGone);
+          window.removeEventListener('blur', handlePointerGone);
         }
 
         systemRef.current = null;

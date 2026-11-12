@@ -7,6 +7,10 @@ const nextConfig = {
   trailingSlash: true,
   basePath,
   assetPrefix: basePath,
+  // Lets client code prefix files from /public (sketch textures) when deployed under a subfolder.
+  env: {
+    NEXT_PUBLIC_BASE_PATH: basePath,
+  },
   images: {
     unoptimized: true,
   },

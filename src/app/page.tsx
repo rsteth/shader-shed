@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import ShaderCanvas from '@/components/ShaderCanvas';
 import { sketches, sketchIds, defaultSketchId } from '@/shaders/sketches';
-import MathText from '@/components/MathText';
+import SketchAboutPanel from '@/components/SketchAboutPanel';
 import { getSketchAbout } from '@/app/sketchAbout';
 
 const panelClassName =
@@ -23,8 +24,15 @@ export default function Home() {
   const about = getSketchAbout(activeSketch, sketch);
 
   return (
-    <main className="relative min-h-screen">
-      <ShaderCanvas mode="background" sketch={activeSketch} asciiMode={asciiMode} />
+    // Exactly one screen tall and clipped: this page is the sketch, not a document.
+    <main className="relative h-[100dvh] overflow-hidden">
+      {/* This page cannot scroll, so scroll-driven sketches loop their progress instead. */}
+      <ShaderCanvas
+        mode="background"
+        sketch={activeSketch}
+        asciiMode={asciiMode}
+        scrollSource={sketch?.scrollDriven ? 'autoplay' : 'page'}
+      />
 
       <div className="pointer-events-auto absolute left-4 top-4 z-10 w-[min(18rem,calc(100%-2rem))] sm:left-6 sm:top-6">
         <div className={panelClassName}>
@@ -62,29 +70,23 @@ export default function Home() {
             About
           </button>
 
+          {sketch?.scrollDriven && (
+            <Link href={`/scroll/?sketch=${activeSketch}`} className={`${buttonClassName} block`}>
+              Try it with real scrolling
+            </Link>
+          )}
+
           {showAbout && (
             <section
               id="sketch-about-panel"
               className="about-panel relative z-10 mt-3 max-h-[52vh] overflow-y-auto rounded-xl border border-white/20 p-4 text-sm"
             >
-              <h2 className="about-blend text-base font-semibold">{sketch?.name ?? activeSketch}</h2>
-              {sketch?.meta?.attribution && (
-                <p className="about-blend mt-1 text-xs italic text-zinc-300/90">{sketch.meta.attribution}</p>
-              )}
-              <MathText text={about.equation} className="about-blend mt-2 space-y-2" />
-              <MathText
-                text={about.symbols}
-                className="about-blend mt-1 text-[11px] leading-relaxed text-zinc-300/90 space-y-1"
+              <SketchAboutPanel
+                id={activeSketch}
+                name={sketch?.name ?? activeSketch}
+                attribution={sketch?.meta?.attribution}
+                about={about}
               />
-              <MathText text={about.intro} className="about-blend mt-4 space-y-2" />
-              <div className="mt-3 space-y-3">
-                {about.sections.map((section) => (
-                  <div key={section.heading} className="rounded-lg border border-white/15 p-3">
-                    <h3 className="about-blend text-sm font-semibold">{section.heading}</h3>
-                    <MathText text={section.body} className="about-blend mt-1.5 space-y-2" />
-                  </div>
-                ))}
-              </div>
             </section>
           )}
         </div>

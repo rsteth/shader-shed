@@ -12,11 +12,6 @@ uniform vec2 uResolution;
 uniform vec2 uMouse;
 uniform float uDt;
 
-float smin(float a, float b, float k) {
-    float h = max(k - abs(a - b), 0.0) / k;
-    return min(a, b) - h * h * h * k * (1.0 / 6.0);
-}
-
 float sphere(vec3 p, float r) { return length(p) - r; }
 
 float mapScene(vec3 p) {
@@ -26,9 +21,9 @@ float mapScene(vec3 p) {
         float ang = fi * 1.047 + uTime * (0.4 + fi * 0.03);
         vec3 c = vec3(cos(ang), sin(ang * 1.2), sin(ang)) * vec3(0.9, 0.45, 0.9);
         float r = 0.26 + 0.05 * sin(uTime * 2.0 + fi * 1.7);
-        d = smin(d, sphere(p - c, r), 0.5);
+        d = smoothUnion(d, sphere(p - c, r), 0.44);
     }
-    d = smin(d, sphere(p, 0.42), 0.6);
+    d = smoothUnion(d, sphere(p, 0.42), 0.53);
     return d;
 }
 

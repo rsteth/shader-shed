@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import ShaderCanvas from '@/components/ShaderCanvas';
-import MathText from '@/components/MathText';
+import SketchWalkthrough from '@/components/SketchWalkthrough';
 import { getSketchAbout } from '@/app/sketchAbout';
 import { sketches, sketchIds } from '@/shaders/sketches';
 
@@ -10,41 +10,34 @@ export function generateStaticParams() {
   return sketchIds.map((id) => ({ id }));
 }
 
-export default async function SketchAboutPage({ params }: { params: Promise<{ id: string }> }) {
+/**
+ * The walkthrough for one sketch: the shader fixed behind the page, its explanation
+ * scrolling over it. Scroll-driven sketches read this page's own scroll position, so
+ * they move as you read.
+ */
+export default async function SketchWalkthroughPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  if (!sketchIds.includes(id)) {
-    notFound();
-  }
-
   const sketch = sketches[id];
-  if (!sketch) {
+  if (!sketch || !sketchIds.includes(id)) {
     notFound();
   }
 
-  const about = getSketchAbout(id, sketch);
+  const index = sketchIds.indexOf(id);
+  const previousId = sketchIds[(index - 1 + sketchIds.length) % sketchIds.length];
+  const nextId = sketchIds[(index + 1) % sketchIds.length];
 
   return (
-    <main className="relative min-h-screen">
-      <ShaderCanvas mode="background" sketch={id} />
-
-      <section className="absolute left-4 top-4 z-10 w-[min(24rem,calc(100%-2rem))] rounded-2xl border border-white/20 bg-black/55 p-4 text-sm shadow-[0_18px_48px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:left-6 sm:top-6">
-        <h1 className="about-blend text-base font-semibold">{sketch.name}</h1>
-        <MathText text={about.equation} className="about-blend mt-2 space-y-2" />
-        <MathText
-          text={about.symbols}
-          className="about-blend mt-1 text-[11px] leading-relaxed text-zinc-300/90 space-y-1"
-        />
-        <MathText text={about.intro} className="about-blend mt-4 space-y-2" />
-        <div className="mt-3 space-y-3">
-          {about.sections.map((section) => (
-            <div key={section.heading} className="rounded-lg border border-white/15 p-3">
-              <h2 className="about-blend text-sm font-semibold">{section.heading}</h2>
-              <MathText text={section.body} className="about-blend mt-1.5 space-y-2" />
-            </div>
-          ))}
-        </div>
-      </section>
+    <main className="relative">
+      <ShaderCanvas mode="background" sketch={id} scrollSource="page" />
+      <SketchWalkthrough
+        name={sketch.name}
+        attribution={sketch.meta?.attribution}
+        about={getSketchAbout(id, sketch)}
+        scrollDriven={sketch.scrollDriven === true}
+        previous={{ id: previousId, name: sketches[previousId].name }}
+        next={{ id: nextId, name: sketches[nextId].name }}
+      />
     </main>
   );
 }
